@@ -1,6 +1,5 @@
-package com.hb0730.commons.http.utils;
+package com.hb0730.commons.http;
 
-import com.hb0730.commons.http.HttpHeader;
 import com.hb0730.commons.http.config.HttpConfig;
 import com.hb0730.commons.http.constants.Constants;
 import com.hb0730.commons.http.exception.HttpException;
@@ -8,7 +7,7 @@ import com.hb0730.commons.http.inter.AbstractSyncHttp;
 import com.hb0730.commons.http.inter.SyncHttp;
 import com.hb0730.commons.http.support.httpclient.HttpClientSyncImpl;
 import com.hb0730.commons.http.support.okhttp3.OkHttp3SyncImpl;
-import com.hb0730.commons.lang.ClassUtils;
+import com.hb0730.commons.http.utils.ClassUtils;
 
 import java.util.Map;
 

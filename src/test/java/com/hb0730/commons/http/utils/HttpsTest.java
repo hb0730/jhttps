@@ -1,5 +1,7 @@
 package com.hb0730.commons.http.utils;
 
+import com.hb0730.commons.http.HttpAsync;
+import com.hb0730.commons.http.HttpSync;
 import com.hb0730.commons.http.Https;
 import com.hb0730.commons.http.support.callback.HttpCallback;
 import com.hb0730.commons.http.support.okhttp3.OkHttp3SyncImpl;

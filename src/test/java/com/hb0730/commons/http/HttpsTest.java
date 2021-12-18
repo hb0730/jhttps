@@ -3,8 +3,6 @@ package com.hb0730.commons.http;
 import com.hb0730.commons.http.support.callback.HttpCallback;
 import com.hb0730.commons.http.support.httpclient.HttpClientSyncImpl;
 import com.hb0730.commons.http.support.okhttp3.OkHttp3SyncImpl;
-import com.hb0730.commons.http.utils.HttpAsync;
-import com.hb0730.commons.http.utils.HttpSync;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -1,8 +1,6 @@
 package com.hb0730.commons.http;
 
 import com.hb0730.commons.http.inter.Http;
-import com.hb0730.commons.http.utils.HttpAsync;
-import com.hb0730.commons.http.utils.HttpSync;
 
 /**
  * commons utils list

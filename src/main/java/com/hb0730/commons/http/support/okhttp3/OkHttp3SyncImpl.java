@@ -4,9 +4,15 @@ import com.hb0730.commons.http.config.HttpConfig;
 import com.hb0730.commons.http.constants.Constants;
 import com.hb0730.commons.http.exception.HttpException;
 import com.hb0730.commons.http.inter.AbstractSyncHttp;
-import com.hb0730.commons.lang.StringUtils;
-import com.hb0730.commons.lang.map.MapUtils;
-import okhttp3.*;
+import com.hb0730.commons.http.utils.MapUtils;
+import com.hb0730.commons.http.utils.StringUtils;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import java.io.IOException;
 import java.time.Duration;
