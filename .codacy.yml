@@ -1,0 +1,15 @@
+---
+engines:
+  cppcheck:
+    enabled: true
+    language: java
+exclude_paths:
+  - "bin/**"
+  - "github/**"
+  - "*.yml"
+  - "*.md"
+  - "**/*.md"
+  - "**/*.yml"
+  - "**/test/**"
+  - "**/resources/**"
+  - "commons-**-test"
