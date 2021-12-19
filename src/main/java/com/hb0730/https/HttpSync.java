@@ -6,6 +6,7 @@ import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractSyncHttp;
 import com.hb0730.https.inter.SyncHttp;
 import com.hb0730.https.support.httpclient.HttpClientSyncImpl;
+import com.hb0730.https.support.hutool.HutoolSyncImpl;
 import com.hb0730.https.support.okhttp3.OkHttp3SyncImpl;
 import com.hb0730.https.utils.ClassUtils;
 
@@ -28,6 +29,9 @@ public class HttpSync implements SyncHttp {
         }
         if (ClassUtils.isPresent("okhttp3.OkHttpClient", classLoader)) {
             defaultProxy = getHttpProxy(OkHttp3SyncImpl.class);
+        }
+        if (ClassUtils.isPresent("cn.hutool.http.HttpRequest", classLoader)) {
+            defaultProxy = getHttpProxy(HutoolSyncImpl.class);
         }
         if (defaultProxy == null) {
             throw new HttpException("Has no HttpImpl defined in environment!");

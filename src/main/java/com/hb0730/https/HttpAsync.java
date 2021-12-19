@@ -7,6 +7,7 @@ import com.hb0730.https.inter.AbstractAsyncHttp;
 import com.hb0730.https.inter.AsyncHttp;
 import com.hb0730.https.support.callback.HttpCallback;
 import com.hb0730.https.support.httpclient.HttpClientAsyncImpl;
+import com.hb0730.https.support.hutool.HutoolAsyncImpl;
 import com.hb0730.https.support.okhttp3.OkHttp3AsyncImpl;
 import com.hb0730.https.utils.ClassUtils;
 
@@ -29,6 +30,9 @@ public class HttpAsync implements AsyncHttp {
         }
         if (ClassUtils.isPresent("okhttp3.OkHttpClient", classLoader)) {
             defaultProxy = getHttpProxy(OkHttp3AsyncImpl.class);
+        }
+        if (ClassUtils.isPresent("cn.hutool.http.HttpRequest", classLoader)) {
+            defaultProxy = getHttpProxy(HutoolAsyncImpl.class);
         }
         if (defaultProxy == null) {
             throw new HttpException("Has no HttpImpl defined in environment!");
