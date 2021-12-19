@@ -1,10 +1,10 @@
 package com.hb0730.commons.http.support.okhttp3;
 
+import cn.hutool.core.map.MapBuilder;
 import com.hb0730.commons.http.HttpHeader;
 import com.hb0730.commons.http.config.HttpConfig;
 import com.hb0730.commons.http.inter.AbstractSyncHttp;
 import com.hb0730.commons.http.inter.SyncHttp;
-import com.hb0730.commons.lang.map.MapBuilder;
 import okhttp3.OkHttpClient;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class OkHttp3SyncImplTest {
     public void testGetTest() {
         //有参请求
         SyncHttp sync = new OkHttp3SyncImpl();
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         //http://poetry.apiopen.top/getTime
         String result = sync.get("", params);
@@ -55,7 +55,7 @@ public class OkHttp3SyncImplTest {
     public void testGet2Test() {
         //多参请求
         SyncHttp sync = new OkHttp3SyncImpl();
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         //http://poetry.apiopen.top/poetryFull?page=1
         String result = sync.get("", params);
@@ -67,12 +67,12 @@ public class OkHttp3SyncImplTest {
     public void testGet1Test() {
         //请求头 参数判断
         AbstractSyncHttp sync = new OkHttp3SyncImpl();
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -89,12 +89,12 @@ public class OkHttp3SyncImplTest {
         //请求头 参数判断
         AbstractSyncHttp sync = new OkHttp3SyncImpl();
         sync.setHttpConfig(HttpConfig.builder().encode(true).build());
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -126,7 +126,7 @@ public class OkHttp3SyncImplTest {
     @Test
     public void testPost1Test() {
         AbstractSyncHttp sync = new OkHttp3SyncImpl();
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");
@@ -149,7 +149,7 @@ public class OkHttp3SyncImplTest {
     @Test
     public void testPost3Test() {
         AbstractSyncHttp sync = new OkHttp3SyncImpl();
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");

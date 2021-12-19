@@ -1,9 +1,9 @@
 package com.hb0730.commons.http.support.httpclient;
 
+import cn.hutool.core.map.MapBuilder;
 import com.hb0730.commons.http.HttpHeader;
 import com.hb0730.commons.http.config.HttpConfig;
 import com.hb0730.commons.http.support.callback.HttpCallback;
-import com.hb0730.commons.lang.map.MapBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.junit.After;
@@ -62,7 +62,7 @@ public class HttpClientAsyncImplTest {
     @Test
     public void testGetTest() {
         //有参请求
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         HttpClientAsyncImpl async = new HttpClientAsyncImpl();
         async.get("http://poetry.apiopen.top/getTime", params, new HttpCallback() {
@@ -81,7 +81,7 @@ public class HttpClientAsyncImplTest {
     @Test
     public void testGet1Test() {
         //多参请求
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         //http://poetry.apiopen.top/poetryFull?page=1
         HttpClientAsyncImpl async = new HttpClientAsyncImpl();
@@ -101,12 +101,12 @@ public class HttpClientAsyncImplTest {
     @Test
     public void testGet2Test() {
         //请求头 参数判断
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -131,12 +131,12 @@ public class HttpClientAsyncImplTest {
     @Test
     public void testGet3Test() {
         //请求头 参数判断
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -196,7 +196,7 @@ public class HttpClientAsyncImplTest {
 
     @Test
     public void testPost1Test() {
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");
@@ -237,7 +237,7 @@ public class HttpClientAsyncImplTest {
 
     @Test
     public void testPost3Test() {
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");

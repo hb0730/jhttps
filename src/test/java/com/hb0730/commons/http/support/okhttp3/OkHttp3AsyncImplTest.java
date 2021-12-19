@@ -1,11 +1,11 @@
 package com.hb0730.commons.http.support.okhttp3;
 
+import cn.hutool.core.map.MapBuilder;
 import com.hb0730.commons.http.HttpHeader;
 import com.hb0730.commons.http.config.HttpConfig;
 import com.hb0730.commons.http.inter.AbstractAsyncHttp;
 import com.hb0730.commons.http.inter.AsyncHttp;
 import com.hb0730.commons.http.support.callback.HttpCallback;
-import com.hb0730.commons.lang.map.MapBuilder;
 import okhttp3.OkHttpClient;
 import org.junit.After;
 import org.junit.Assert;
@@ -60,7 +60,7 @@ public class OkHttp3AsyncImplTest {
     @Test
     public void testGetTest() {
         //有参请求
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         AsyncHttp async = new OkHttp3AsyncImpl();
         //http://poetry.apiopen.top/getTime
@@ -80,7 +80,7 @@ public class OkHttp3AsyncImplTest {
     @Test
     public void testGet1Test() {
         //多参请求
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         //http://poetry.apiopen.top/poetryFull?page=1
         AsyncHttp async = new OkHttp3AsyncImpl();
@@ -100,12 +100,12 @@ public class OkHttp3AsyncImplTest {
     @Test
     public void testGet2Test() {
         //请求头 参数判断
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -130,12 +130,12 @@ public class OkHttp3AsyncImplTest {
     @Test
     public void testGet3Test() {
         //请求头 参数判断
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -195,7 +195,7 @@ public class OkHttp3AsyncImplTest {
 
     @Test
     public void testPost1Test() {
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");
@@ -236,7 +236,7 @@ public class OkHttp3AsyncImplTest {
 
     @Test
     public void testPost3Test() {
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");

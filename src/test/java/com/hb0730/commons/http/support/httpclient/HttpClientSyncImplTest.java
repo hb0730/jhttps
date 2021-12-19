@@ -1,8 +1,8 @@
 package com.hb0730.commons.http.support.httpclient;
 
+import cn.hutool.core.map.MapBuilder;
 import com.hb0730.commons.http.HttpHeader;
 import com.hb0730.commons.http.config.HttpConfig;
-import com.hb0730.commons.lang.map.MapBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -55,7 +55,7 @@ public class HttpClientSyncImplTest {
     public void testGetTest() {
         //有参请求
         HttpClientSyncImpl sync = new HttpClientSyncImpl();
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         //http://poetry.apiopen.top/getTime
         String result = sync.get("", params);
@@ -66,7 +66,7 @@ public class HttpClientSyncImplTest {
     public void testGet2Test() {
         //多参请求
         HttpClientSyncImpl sync = new HttpClientSyncImpl();
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build.put("count", "2").build();
         //http://poetry.apiopen.top/poetryFull?page=1
         String result = sync.get("", params);
@@ -78,12 +78,12 @@ public class HttpClientSyncImplTest {
     public void testGet1Test() {
         //请求头 参数判断
         HttpClientSyncImpl sync = new HttpClientSyncImpl();
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -100,12 +100,12 @@ public class HttpClientSyncImplTest {
         //请求头 参数判断
         HttpClientSyncImpl sync = new HttpClientSyncImpl();
         sync.setHttpConfig(HttpConfig.builder().encode(true).build());
-        MapBuilder<String, String> build = MapBuilder.builder();
+        MapBuilder<String, String> build = MapBuilder.create();
         Map<String, String> params = build
-                .put("count", "2")
-                .put("page", "1")
-                .put("name", "李白")
-                .build();
+            .put("count", "2")
+            .put("page", "1")
+            .put("name", "李白")
+            .build();
         HttpHeader httpHeader = HttpHeader.builder();
         httpHeader.add("Accept", "*/*");
         //测试为空,为null
@@ -137,7 +137,7 @@ public class HttpClientSyncImplTest {
     @Test
     public void testPost1Test() {
         HttpClientSyncImpl sync = new HttpClientSyncImpl();
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");
@@ -160,7 +160,7 @@ public class HttpClientSyncImplTest {
     @Test
     public void testPost3Test() {
         HttpClientSyncImpl sync = new HttpClientSyncImpl();
-        MapBuilder<String, String> mapBuilder = MapBuilder.builder();
+        MapBuilder<String, String> mapBuilder = MapBuilder.create();
         mapBuilder.put("type", "all");
         mapBuilder.put("page", "1");
         mapBuilder.put("count", "10");
