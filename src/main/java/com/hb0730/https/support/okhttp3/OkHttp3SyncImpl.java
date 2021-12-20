@@ -47,7 +47,9 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        Request.Builder builder = getRequestBuilder(url, params, this.httpConfig.isEncode(), this.header == null ? null : this.header.getHeaders());
+        Request.Builder builder = getRequestBuilder(url, params,
+            this.httpConfig.isEncode(),
+            this.header == null ? null : this.header.getHeaders());
         return exec(builder);
     }
 
@@ -62,8 +64,10 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        Request.Builder requestBuilder = postJsonRequestBuild(url, data, StringUtils.isBlank(this.httpConfig.getContentType()) ? JSON :
-            MediaType.parse(this.httpConfig.getContentType()), this.header == null ? null : this.header.getHeaders());
+        Request.Builder requestBuilder = postJsonRequestBuild(url, data,
+            StringUtils.isBlank(this.httpConfig.getContentType()) ?
+                JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
+            this.header == null ? null : this.header.getHeaders());
         return exec(requestBuilder);
     }
 
@@ -73,9 +77,9 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
             return Constants.EMPTY;
         }
         Request.Builder requestBuilder = postFormDataRequestBuild(url, formdata, this.httpConfig.isEncode(),
-            StringUtils.isBlank(this.httpConfig.getContentType()) ?
-                FORM_DATA : MediaType.parse(this.httpConfig.getContentType()),
-            (null == this.header) ? null : this.header.getHeaders());
+            StringUtils.isBlank(this.httpConfig.getContentType()) ? FORM_DATA_UTF_8 :
+                MediaType.parse(this.httpConfig.getContentType()),
+            null == this.header ? null : this.header.getHeaders());
         return exec(requestBuilder);
     }
 
@@ -86,7 +90,7 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
         }
 
         Request request = requestBuilder.build();
-        OkHttpClient httpClient = buildClient(clientBuilder,this.httpConfig);
+        OkHttpClient httpClient = buildClient(clientBuilder, this.httpConfig);
         try (Response response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 result = Objects.requireNonNull(response.body()).string();

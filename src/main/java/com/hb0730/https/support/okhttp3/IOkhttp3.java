@@ -21,8 +21,8 @@ import java.util.concurrent.TimeUnit;
  * @since 3.0.0
  */
 public interface IOkhttp3 {
-    MediaType JSON = MediaType.parse(Constants.CONTENT_TYPE_JSON_UTF_8);
-    MediaType FORM_DATA = MediaType.parse(Constants.CONTENT_TYPE_FORM_DATA_UTF_8);
+    MediaType JSON_UTF_8 = MediaType.parse(Constants.CONTENT_TYPE_JSON_UTF_8);
+    MediaType FORM_DATA_UTF_8 = MediaType.parse(Constants.CONTENT_TYPE_FORM_DATA_UTF_8);
 
     /**
      * 构建 get请求
@@ -59,6 +59,7 @@ public interface IOkhttp3 {
         if (null != header) {
             MapUtils.forEach(header, builder::addHeader);
         }
+        builder.addHeader("Content-Type", contentType.toString());
         RequestBody body = RequestBody.create(dataJson, contentType);
 
         return builder.post(body);
@@ -82,6 +83,7 @@ public interface IOkhttp3 {
         if (null != headers) {
             MapUtils.forEach(headers, builder::addHeader);
         }
+        builder.addHeader("Content-Type", contentType.toString());
         FormBody.Builder formBuild = new FormBody.Builder(contentType.charset());
         if (encode) {
             MapUtils.forEach(formdata, formBuild::addEncoded);
@@ -124,7 +126,7 @@ public interface IOkhttp3 {
     default OkHttpClient buildClient(final OkHttpClient.Builder clientBuilder, HttpConfig config) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         if (clientBuilder != null) {
-            builder = new OkHttpClient.Builder();
+            builder = clientBuilder;
         }
         builder.connectTimeout(config.getTimeout(), TimeUnit.MILLISECONDS);
         builder.proxy(config.getProxy());

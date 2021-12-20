@@ -62,8 +62,9 @@ public class OkHttp3AsyncImpl extends AbstractAsyncHttp implements IOkhttp3 {
         if (StringUtils.isBlank(url)) {
             throw new HttpException("url missing");
         }
-        Request.Builder requestBuilder = postJsonRequestBuild(url, dataJson, StringUtils.isBlank(this.httpConfig.getContentType()) ? JSON :
-            MediaType.parse(this.httpConfig.getContentType()), this.header == null ? null : this.header.getHeaders());
+        Request.Builder requestBuilder = postJsonRequestBuild(url, dataJson,
+            StringUtils.isBlank(this.httpConfig.getContentType()) ? JSON_UTF_8 :
+                MediaType.parse(this.httpConfig.getContentType()), this.header == null ? null : this.header.getHeaders());
         exec(requestBuilder, httpCallback);
     }
 
@@ -75,7 +76,7 @@ public class OkHttp3AsyncImpl extends AbstractAsyncHttp implements IOkhttp3 {
         }
         Request.Builder requestBuilder = postFormDataRequestBuild(url, formdata, this.httpConfig.isEncode(),
             StringUtils.isBlank(this.httpConfig.getContentType()) ?
-                FORM_DATA : MediaType.parse(this.httpConfig.getContentType()),
+                FORM_DATA_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
             (null == this.header) ? null : this.header.getHeaders());
         exec(requestBuilder, httpCallback);
     }
