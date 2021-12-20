@@ -1,12 +1,12 @@
 package com.hb0730.https.support.hutool;
 
+import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.inter.AbstractSyncHttp;
-import com.hb0730.https.utils.MapUtils;
 import com.hb0730.https.utils.StringUtils;
 
 import java.util.Map;
@@ -15,10 +15,9 @@ import java.util.Map;
  * hutool http
  *
  * @author <a href="mailto:huangbing0730@gmail">hb0730</a>
- * @date 2021/12/18
  * @since 3.0.0
  */
-public class HutoolSyncImpl extends AbstractSyncHttp {
+public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
     public HutoolSyncImpl() {
         this(HttpConfig.builder().build());
     }
@@ -37,15 +36,13 @@ public class HutoolSyncImpl extends AbstractSyncHttp {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        String baseUrl = StringUtils.appendIfNotContain(url, "?", "&");
-        baseUrl = baseUrl + MapUtils.parseMapToUrlString(params, this.httpConfig.isEncode());
-        HttpRequest request = getRequest(baseUrl, Method.GET);
+        UrlBuilder builder = urlBuilder(url, params, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getRequest(builder, Method.GET);
         HttpResponse execute = request.execute();
         if (execute.isOk()) {
             return execute.body();
         }
         return Constants.EMPTY;
-
     }
 
     @Override
@@ -58,8 +55,9 @@ public class HutoolSyncImpl extends AbstractSyncHttp {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        HttpRequest request = getRequest(url, Method.POST);
-        request.body(dataJson);
+        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getRequest(builder, Method.POST);
+        request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
         HttpResponse execute = request.execute();
         if (execute.isOk()) {
             return execute.body();
@@ -72,8 +70,10 @@ public class HutoolSyncImpl extends AbstractSyncHttp {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        HttpRequest request = getRequest(url, Method.POST);
+        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getRequest(builder, Method.POST);
         request.formStr(formdata);
+        request.contentType(getContentType(Constants.CONTENT_TYPE_FORM_DATA_UTF_8));
         HttpResponse execute = request.execute();
         if (execute.isOk()) {
             return execute.body();
@@ -81,14 +81,15 @@ public class HutoolSyncImpl extends AbstractSyncHttp {
         return Constants.EMPTY;
     }
 
-    private HttpRequest getRequest(String url, Method method) {
-        HttpRequest request = new HttpRequest(url).setMethod(method);
-        HttpConfig config = getHttpConfig();
-        request.setProxy(config.getProxy());
-        request.setConnectionTimeout(Math.toIntExact(config.getTimeout()));
-        if (null != getHeader()) {
-            request.addHeaders(getHeader().getHeaders());
+    private HttpRequest getRequest(UrlBuilder url, Method method) {
+        return getHttpRequest(url, method, getHttpConfig() == null ? HttpConfig.builder().build() : getHttpConfig(), getHeader());
+    }
+
+    private String getContentType(String defaultContentType) {
+        if (StringUtils.isBlank(this.httpConfig.getContentType())) {
+            return defaultContentType;
+        } else {
+            return this.httpConfig.getContentType();
         }
-        return request;
     }
 }

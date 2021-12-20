@@ -1,6 +1,7 @@
 package com.hb0730.https.support.hutool;
 
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
@@ -9,7 +10,6 @@ import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractAsyncHttp;
 import com.hb0730.https.support.callback.HttpCallback;
-import com.hb0730.https.utils.MapUtils;
 import com.hb0730.https.utils.StringUtils;
 import org.apache.hc.client5.http.ClientProtocolException;
 
@@ -20,10 +20,9 @@ import java.util.Map;
  * hutool 异步
  *
  * @author <a href="mailto:huangbing0730@gmail">hb0730</a>
- * @date 2021/12/19
  * @since 3.0.0
  */
-public class HutoolAsyncImpl extends AbstractAsyncHttp {
+public class HutoolAsyncImpl extends AbstractAsyncHttp implements IHutoolHttp {
     public HutoolAsyncImpl() {
         this(HttpConfig.builder().build());
     }
@@ -40,11 +39,10 @@ public class HutoolAsyncImpl extends AbstractAsyncHttp {
     @Override
     public void get(String url, Map<String, String> params, HttpCallback httpCallback) {
         if (StringUtils.isEmpty(url)) {
-            throw new HttpException("request url must be not null");
+            throw new HttpException("url missing");
         }
-        String baseUrl = StringUtils.appendIfNotContain(url, "?", "&");
-        baseUrl = baseUrl + MapUtils.parseMapToUrlString(params, this.httpConfig.isEncode());
-        HttpRequest request = getRequest(baseUrl, Method.GET);
+        UrlBuilder builder = urlBuilder(url, params, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getHttpRequest(builder, Method.GET, httpConfig, this.header);
         response(httpCallback, request);
 
     }
@@ -57,20 +55,23 @@ public class HutoolAsyncImpl extends AbstractAsyncHttp {
     @Override
     public void post(String url, String dataJson, HttpCallback httpCallback) {
         if (StringUtils.isEmpty(url)) {
-            throw new HttpException("request url must be not null");
+            throw new HttpException("url missing");
         }
-        HttpRequest request = getRequest(url, Method.POST);
-        request.body(dataJson);
+        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getHttpRequest(builder, Method.POST, this.httpConfig, this.header);
+        request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
         response(httpCallback, request);
     }
 
     @Override
     public void post(String url, Map<String, String> formdata, HttpCallback httpCallback) {
         if (StringUtils.isEmpty(url)) {
-            throw new HttpException("request url must be not null");
+            throw new HttpException("url missing");
         }
-        HttpRequest request = getRequest(url, Method.POST);
+        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getHttpRequest(builder, Method.POST, this.httpConfig, this.header);
         request.formStr(formdata);
+        request.contentType(getContentType(Constants.CONTENT_TYPE_FORM_DATA_UTF_8));
         response(httpCallback, request);
     }
 
@@ -86,17 +87,11 @@ public class HutoolAsyncImpl extends AbstractAsyncHttp {
             httpCallback.failure(e);
         }
     }
-
-    private HttpRequest getRequest(String url, Method method) {
-        HttpRequest request = new HttpRequest(url);
-        request.setMethod(method);
-        HttpConfig config = getHttpConfig();
-        request.setProxy(config.getProxy());
-        request.setConnectionTimeout(Math.toIntExact(config.getTimeout()));
-        if (null != getHeader()) {
-            request.addHeaders(getHeader().getHeaders());
+    private String getContentType(String defaultContentType) {
+        if (StringUtils.isBlank(this.httpConfig.getContentType())) {
+            return defaultContentType;
+        } else {
+            return this.httpConfig.getContentType();
         }
-        return request;
-
     }
 }
