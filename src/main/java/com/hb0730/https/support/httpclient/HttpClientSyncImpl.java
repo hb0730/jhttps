@@ -8,16 +8,18 @@ import com.hb0730.https.inter.AbstractSyncHttp;
 import com.hb0730.https.utils.CollectionUtils;
 import com.hb0730.https.utils.MapUtils;
 import com.hb0730.https.utils.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -27,6 +29,10 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,11 +71,31 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        String baseUrl = StringUtils.appendIfNotContain(url, "?", "&");
-        url = baseUrl + MapUtils.parseMapToUrlString(params, httpConfig.isEncode());
-        HttpGet httpGet = new HttpGet(url);
-        addHeader(httpGet, getHeader());
-        return this.exec(httpGet);
+        URI uri;
+        try {
+            URIBuilder builder = new URIBuilder(url);
+            if (!CollectionUtils.isEmpty(params)) {
+                List<NameValuePair> query = new ArrayList<>(params.size());
+                params.forEach((k, v) -> query.add(new BasicNameValuePair(k, v)));
+                if (this.httpConfig.isEncode()) {
+                    String queryParams = URLEncodedUtils.format(query, getCharSet());
+                    builder.setCustomQuery(queryParams);
+                } else {
+                    builder.addParameters(query);
+                }
+            }
+            builder.setCharset(this.httpConfig.getCharset());
+            uri = builder.build();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            throw new HttpException(e);
+        }
+        RequestBuilder builder = RequestBuilder.get(uri);
+        builder.setCharset(getCharSet());
+        builder.setConfig(buildConfig());
+        HttpUriRequest request = builder.build();
+        addHeader(request);
+        return this.exec(request);
     }
 
     @Override
@@ -82,15 +108,16 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        HttpPost httpPost = new HttpPost(url);
-        if (!StringUtils.isEmpty(dataJson)) {
-            StringEntity entity = new StringEntity(dataJson, Constants.DEFAULT_ENCODING);
-            entity.setContentEncoding(Constants.DEFAULT_ENCODING.displayName());
-            entity.setContentType(Constants.CONTENT_TYPE_JSON_UTF_8);
-            httpPost.setEntity(entity);
+        RequestBuilder builder = RequestBuilder.post(url);
+        if (!StringUtils.isBlank(dataJson)) {
+            StringEntity entity = new StringEntity(dataJson, getContentType());
+            builder.setEntity(entity);
         }
-        addHeader(httpPost, getHeader());
-        return this.exec(httpPost);
+        builder.setConfig(buildConfig());
+        builder.setCharset(getCharSet());
+        HttpUriRequest uriRequest = builder.build();
+        addHeader(uriRequest);
+        return this.exec(uriRequest);
     }
 
     @Override
@@ -98,15 +125,18 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
-        HttpPost httpPost = new HttpPost(url);
+        RequestBuilder builder = RequestBuilder.post(url);
         if (!CollectionUtils.isEmpty(formdata)) {
-            List<NameValuePair> form = new ArrayList<>();
-            MapUtils.forEach(formdata, (k, v) ->
-                    form.add(new BasicNameValuePair(k, v)));
-            httpPost.setEntity(new UrlEncodedFormEntity(form, Constants.DEFAULT_ENCODING));
+            List<NameValuePair> form = new ArrayList<>(formdata.size());
+            MapUtils.forEach(formdata, (k, v) -> form.add(new BasicNameValuePair(v, k)));
+            builder.setEntity(new UrlEncodedFormEntity(form, getCharSet()));
         }
-        addHeader(httpPost, getHeader());
-        return this.exec(httpPost);
+        builder.setCharset(getCharSet());
+        builder.setConfig(buildConfig());
+        builder.setCharset(getCharSet());
+        HttpUriRequest uriRequest = builder.build();
+        addHeader(uriRequest);
+        return this.exec(uriRequest);
     }
 
     private boolean isSuccess(CloseableHttpResponse response) {
@@ -126,7 +156,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
      * @param header  请求头参数信息
      * @since 2.0.0
      */
-    private void addHeader(HttpRequestBase request, HttpHeader header) {
+    private void addHeader(HttpRequest request, HttpHeader header) {
         if (null == request || null == header) {
             return;
         }
@@ -137,49 +167,55 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         MapUtils.forEach(headers, request::addHeader);
     }
 
-    private void addHeader(HttpRequestBase request) {
-        if (null == request) {
-            return;
-        }
-        String ua = Constants.USER_AGENT;
-        Header[] headers = request.getHeaders(ua);
-        if (null == headers || headers.length == 0) {
-            request.setHeader(ua, Constants.USER_AGENT_DATA);
-        }
+
+    private void addHeader(HttpRequest request) {
+        addHeader(request, getHeader());
     }
 
-    private String exec(HttpRequestBase request) {
-        this.addHeader(request);
-        int timeout;
-        if (httpConfig.getTimeout() > Integer.MAX_VALUE) {
-            timeout = Integer.MAX_VALUE;
-        } else {
-            timeout = Long.valueOf(httpConfig.getTimeout()).intValue();
-        }
-        RequestConfig.Builder builder = RequestConfig.custom()
-                .setConnectionRequestTimeout(timeout)
-                .setConnectTimeout(timeout)
-                .setSocketTimeout(timeout);
-        if (null != httpConfig.getProxy()) {
-            Proxy proxy = httpConfig.getProxy();
-            InetSocketAddress address = (InetSocketAddress) proxy.address();
-            HttpHost host = new HttpHost(address.getHostName(), address.getPort(), proxy.type().name().toLowerCase());
-            builder.setProxy(host);
-        }
+    private String exec(HttpUriRequest request) {
         String result = Constants.EMPTY;
-        request.setConfig(builder.build());
         try (CloseableHttpResponse response = this.httpClient.execute(request)) {
             if (!isSuccess(response)) {
                 return null;
             }
             HttpEntity entity = response.getEntity();
             if (null != entity) {
-                result = EntityUtils.toString(entity, Constants.DEFAULT_ENCODING);
+                result = EntityUtils.toString(entity, getCharSet());
             }
         } catch (IOException e) {
             e.printStackTrace();
             throw new HttpException("request result error:" + e.getMessage());
         }
         return result;
+    }
+
+    private RequestConfig buildConfig() {
+        int timeout;
+        if (httpConfig.getTimeout() > Integer.MAX_VALUE) {
+            timeout = Integer.MAX_VALUE;
+        } else {
+            timeout = Long.valueOf(httpConfig.getTimeout()).intValue();
+        }
+        RequestConfig.Builder builder = RequestConfig.custom().setConnectionRequestTimeout(timeout).setConnectTimeout(timeout).setSocketTimeout(timeout);
+        if (null != httpConfig.getProxy()) {
+            Proxy proxy = httpConfig.getProxy();
+            InetSocketAddress address = (InetSocketAddress) proxy.address();
+            HttpHost host = new HttpHost(address.getHostName(), address.getPort(), proxy.type().name().toLowerCase());
+            builder.setProxy(host);
+        }
+        return builder.build();
+    }
+
+    private Charset getCharSet() {
+        return this.httpConfig.getCharset() == null ? StandardCharsets.UTF_8 : this.httpConfig.getCharset();
+    }
+
+    private ContentType getContentType() {
+        String contentType = this.httpConfig.getContentType();
+        if (StringUtils.isBlank(contentType)) {
+            return ContentType.TEXT_PLAIN;
+        } else {
+            return ContentType.parse(contentType);
+        }
     }
 }

@@ -1,6 +1,5 @@
 package com.hb0730.https.support.httpclient;
 
-import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
@@ -11,34 +10,34 @@ import com.hb0730.https.utils.MapUtils;
 import com.hb0730.https.utils.StringUtils;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.hc.client5.http.ClientProtocolException;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
-import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
+import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
-import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
-import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
+import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.net.WWWFormCodec;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,15 +74,33 @@ public class HttpClientAsyncImpl extends AbstractAsyncHttp {
     @Override
     public void get(String url, Map<String, String> params, HttpCallback httpCallback) {
         if (StringUtils.isBlank(url)) {
-            throw new HttpException("request url must be not null");
+            throw new HttpException("url missing");
         }
-        String baseUrl = StringUtils.appendIfNotContain(url, "?", "&");
-        url = baseUrl + MapUtils.parseMapToUrlString(params, httpConfig.isEncode());
-        HttpGet httpGet = new HttpGet(url);
-        addHeader(httpGet, header);
-        StringAsyncEntityProducer entityProducer = new StringAsyncEntityProducer(Constants.EMPTY);
-        BasicRequestProducer producer = new BasicRequestProducer(httpGet, entityProducer);
-        this.exec(httpGet, producer, httpCallback);
+        URI uri;
+        try {
+            URIBuilder builder = new URIBuilder(url);
+            if (!CollectionUtils.isEmpty(params)) {
+                List<NameValuePair> query = new ArrayList<>(params.size());
+                params.forEach((k, v) -> query.add(new BasicNameValuePair(k, v)));
+                if (this.httpConfig.isEncode()) {
+                    String queryParams = WWWFormCodec.format(query, getCharSet());
+                    builder.setCustomQuery(queryParams);
+                } else {
+                    builder.addParameters(query);
+                }
+            }
+            builder.setCharset(getCharSet());
+            uri = builder.build();
+        } catch (URISyntaxException e) {
+            throw new HttpException(e);
+        }
+        SimpleRequestBuilder builder = SimpleRequestBuilder.get(uri);
+        builder.setRequestConfig(buildConfig());
+
+        SimpleHttpRequest httpRequest = builder.build();
+        addHeader(httpRequest);
+        SimpleRequestProducer producer = SimpleRequestProducer.create(httpRequest);
+        this.exec(producer, httpCallback);
     }
 
     @Override
@@ -94,86 +111,39 @@ public class HttpClientAsyncImpl extends AbstractAsyncHttp {
     @Override
     public void post(String url, String dataJson, HttpCallback httpCallback) {
         if (StringUtils.isBlank(url)) {
-            throw new HttpException("request url must be not null");
+            throw new HttpException("url missing");
         }
-        HttpPost httpPost = new HttpPost(url);
-        addHeader(httpPost, header);
-        AsyncEntityProducer entityProducer;
-        if (StringUtils.isEmpty(dataJson)) {
-            entityProducer = AsyncEntityProducers.create(Constants.EMPTY);
-        } else {
-            entityProducer = AsyncEntityProducers.create(dataJson, ContentType.APPLICATION_JSON);
-        }
-        BasicRequestProducer producer = new BasicRequestProducer(httpPost, entityProducer);
-        this.exec(httpPost, producer, httpCallback);
+        SimpleRequestBuilder builder = SimpleRequestBuilder.post(url);
+        builder.setBody(dataJson, getContentType());
+        builder.setRequestConfig(buildConfig());
+        builder.setCharset(httpConfig.getCharset());
+        SimpleHttpRequest httpRequest = builder.build();
+        addHeader(httpRequest);
+        SimpleRequestProducer producer = SimpleRequestProducer.create(httpRequest);
+        this.exec(producer, httpCallback);
     }
 
     @Override
     public void post(String url, Map<String, String> formdata, HttpCallback httpCallback) {
         if (StringUtils.isBlank(url)) {
-            throw new HttpException("request url must be not null");
+            throw new HttpException("url missing");
         }
-        HttpPost httpPost = new HttpPost(url);
-        addHeader(httpPost, header);
-        AsyncEntityProducer entityProducer;
+        SimpleRequestBuilder builder = SimpleRequestBuilder.post(url);
+        builder.setCharset(this.httpConfig.getCharset());
         if (!CollectionUtils.isEmpty(formdata)) {
-            List<NameValuePair> requestData = new ArrayList<>();
-            MapUtils.forEach(formdata, (k, v) -> requestData.add(new BasicNameValuePair(k, v)));
-            entityProducer = AsyncEntityProducers.createUrlEncoded(requestData, Constants.DEFAULT_ENCODING);
-        } else {
-            entityProducer = AsyncEntityProducers.create(Constants.EMPTY);
+            formdata.forEach(builder::addParameter);
         }
-
-        BasicRequestProducer producer = new BasicRequestProducer(httpPost, entityProducer);
-        this.exec(httpPost, producer, httpCallback);
+        SimpleHttpRequest httpRequest = builder.build();
+        SimpleRequestProducer producer = SimpleRequestProducer.create(httpRequest);
+        this.exec(producer, httpCallback);
     }
 
-    /**
-     * 设置请求头信息
-     *
-     * @param request 请求方式
-     * @param header  请求头参数信息
-     * @since 2.0.0
-     */
-    private void addHeader(BasicHttpRequest request, HttpHeader header) {
-        if (null == request || null == header) {
-            return;
-        }
-        Map<String, String> headers = header.getHeaders();
-        if (CollectionUtils.isEmpty(headers)) {
-            return;
-        }
-        MapUtils.forEach(headers, request::addHeader);
-    }
-
-    private void addHeader(BasicHttpRequest request) {
-        if (null == request) {
-            return;
-        }
-        String ua = Constants.USER_AGENT;
-        Header[] headers = request.getHeaders(ua);
-        if (null == headers || headers.length == 0) {
-            request.setHeader(ua, Constants.USER_AGENT_DATA);
-        }
-    }
-
-    private void exec(HttpUriRequestBase request, BasicRequestProducer producer, HttpCallback httpCallback) {
-        this.addHeader(request);
-        RequestConfig.Builder builder = RequestConfig.custom()
-                .setConnectionRequestTimeout(httpConfig.getTimeout(), TimeUnit.MILLISECONDS)
-                .setConnectTimeout(httpConfig.getTimeout(), TimeUnit.MILLISECONDS);
-        if (null != httpConfig.getProxy()) {
-            Proxy proxy = httpConfig.getProxy();
-            InetSocketAddress address = (InetSocketAddress) proxy.address();
-            HttpHost httpHost = new HttpHost(proxy.type().name().toLowerCase(), address.getHostName(), address.getPort());
-            builder.setProxy(httpHost);
-        }
-        request.setConfig(builder.build());
-        CharCodingConfig charCodingConfig = CharCodingConfig.custom().setCharset(Constants.DEFAULT_ENCODING).build();
-        AsyncEntityConsumer<String> entityConsumer = new StringAsyncEntityConsumer(charCodingConfig);
-        BasicResponseConsumer<String> consumer = new BasicResponseConsumer<>(entityConsumer);
+    private void exec(AsyncRequestProducer producer, HttpCallback httpCallback) {
         this.httpClient.start();
-        this.httpClient.execute(producer, consumer, new FutureCallback<Message<HttpResponse, String>>() {
+        CharCodingConfig config = CharCodingConfig.custom().setCharset(getCharSet()).build();
+        StringAsyncEntityConsumer stringConsumer = new StringAsyncEntityConsumer(config);
+        BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(stringConsumer);
+        this.httpClient.execute(producer, responseConsumer, new FutureCallback<Message<HttpResponse, String>>() {
             @SneakyThrows
             @Override
             public void completed(Message<HttpResponse, String> result) {
@@ -184,7 +154,7 @@ public class HttpClientAsyncImpl extends AbstractAsyncHttp {
                 if (head.getCode() >= HttpStatus.SC_SUCCESS && head.getCode() < HttpStatus.SC_REDIRECTION) {
                     httpCallback.success(result.getBody());
                 } else {
-                    httpCallback.failure(new ClientProtocolException("Unexpected response status: " + head.getCode()));
+                    httpCallback.failure(new HttpException("Unexpected response status: " + head.getCode()));
                 }
             }
 
@@ -201,14 +171,38 @@ public class HttpClientAsyncImpl extends AbstractAsyncHttp {
 
             }
         });
-        //注意关闭Client(自行关闭)
-//        try {
-//            future.get(httpConfig.getTimeout(), TimeUnit.MILLISECONDS);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            this.httpClient.close(CloseMode.GRACEFUL);
-//        }
+    }
 
+    private RequestConfig buildConfig() {
+        RequestConfig.Builder builder = RequestConfig.custom()
+            .setConnectionRequestTimeout(httpConfig.getTimeout(), TimeUnit.MILLISECONDS)
+            .setConnectTimeout(httpConfig.getTimeout(), TimeUnit.MILLISECONDS);
+        if (null != httpConfig.getProxy()) {
+            Proxy proxy = httpConfig.getProxy();
+            InetSocketAddress address = (InetSocketAddress) proxy.address();
+            HttpHost httpHost = new HttpHost(proxy.type().name().toLowerCase(), address.getHostName(), address.getPort());
+            builder.setProxy(httpHost);
+        }
+        return builder.build();
+    }
+
+    private void addHeader(HttpRequest request) {
+        if (null != getHeader()) {
+            Map<String, String> headers = getHeader().getHeaders();
+            MapUtils.forEach(headers, request::addHeader);
+        }
+    }
+
+    private Charset getCharSet() {
+        return this.httpConfig.getCharset() == null ? StandardCharsets.UTF_8 : this.httpConfig.getCharset();
+    }
+
+    private ContentType getContentType() {
+        String contentType = getHttpConfig().getContentType();
+        if (StringUtils.isBlank(contentType)) {
+            return ContentType.TEXT_PLAIN;
+        } else {
+            return ContentType.parse(contentType);
+        }
     }
 }

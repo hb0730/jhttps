@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.net.Proxy;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Http 配置类
@@ -37,7 +39,11 @@ public class HttpConfig {
      */
     private boolean encode = false;
     /**
+     * charset
+     */
+    private Charset charset = StandardCharsets.UTF_8;
+    /**
      * contentType
      */
-    private String contentType = Constants.CONTENT_TYPE_JSON_UTF_8;
+    private String contentType;
 }
