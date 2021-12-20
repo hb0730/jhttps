@@ -86,7 +86,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         if (!StringUtils.isEmpty(dataJson)) {
             StringEntity entity = new StringEntity(dataJson, Constants.DEFAULT_ENCODING);
             entity.setContentEncoding(Constants.DEFAULT_ENCODING.displayName());
-            entity.setContentType(Constants.CONTENT_TYPE_JSON);
+            entity.setContentType(Constants.CONTENT_TYPE_JSON_UTF_8);
             httpPost.setEntity(entity);
         }
         addHeader(httpPost, getHeader());

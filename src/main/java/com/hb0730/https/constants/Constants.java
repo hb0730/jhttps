@@ -21,7 +21,11 @@ public interface Constants {
     /**
      * JSON
      */
-    String CONTENT_TYPE_JSON = "application/json; charset=utf-8";
+    String CONTENT_TYPE_JSON_UTF_8 = "application/json; charset=utf-8";
+    /**
+     * form-data
+     */
+    String CONTENT_TYPE_FORM_DATA_UTF_8 = "application/x-www-form-urlencoded; charset=utf-8";
 
     /**
      * Content-Type

@@ -1,7 +1,12 @@
 package com.hb0730.https.config;
 
 import com.hb0730.https.constants.Constants;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.net.Proxy;
 
@@ -28,12 +33,11 @@ public class HttpConfig {
     private long timeout = Constants.DEFAULT_TIMEOUT;
 
     /**
-     * 编码
+     * 编码, url or form-data
      */
     private boolean encode = false;
-
     /**
-     * 解码
+     * contentType
      */
-    private boolean decode = false;
+    private String contentType = Constants.CONTENT_TYPE_JSON_UTF_8;
 }
