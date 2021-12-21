@@ -1,7 +1,7 @@
 <h1 align="center"><a href="https://github.com/hb0730/jhttps" target="_blank">java http integration</a></h1>
 <p align="center">
-<a href="https://search.maven.org/artifact/com.hb0730/jhttps">
-<img alt="Maven Central" src="https://img.shields.io/maven-central/v/com.hb0730/jhttps?style=flat-square">
+<a href="https://search.maven.org/artifact/com.hb0730/https">
+<img alt="Maven Central" src="https://img.shields.io/maven-central/v/com.hb0730/https?style=flat-square">
 </a>
 <a href="https://github.com/hb0730/jhttps/blob/master/LICENSE">
 <img alt="GitHub" src="https://img.shields.io/github/license/hb0730/jhttps?style=flat-square">
