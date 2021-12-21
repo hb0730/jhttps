@@ -2,7 +2,8 @@ name: Build java
 on:
   push:
     branches:
-      - main
+      - "main"
+      - "release/*"
     paths:
       - "**"
       - "!**.yml"
