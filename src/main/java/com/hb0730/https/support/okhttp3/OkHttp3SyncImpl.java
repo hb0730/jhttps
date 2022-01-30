@@ -11,6 +11,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
 
@@ -50,7 +51,7 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
         Request.Builder builder = getRequestBuilder(url, params,
             this.httpConfig.isEncode(),
             this.header == null ? null : this.header.getHeaders());
-        return exec(builder);
+        return execStr(builder);
     }
 
     @Override
@@ -68,7 +69,19 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
             StringUtils.isBlank(this.httpConfig.getContentType()) ?
                 JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
             this.header == null ? null : this.header.getHeaders());
-        return exec(requestBuilder);
+        return execStr(requestBuilder);
+    }
+
+    @Override
+    public InputStream postStream(String url, String dataJson) {
+        if (StringUtils.isEmpty(url)) {
+            return null;
+        }
+        Request.Builder requestBuilder = postJsonRequestBuild(url, dataJson,
+            StringUtils.isBlank(this.httpConfig.getContentType()) ?
+                JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
+            this.header == null ? null : this.header.getHeaders());
+        return execStream(requestBuilder);
     }
 
     @Override
@@ -80,10 +93,10 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
             StringUtils.isBlank(this.httpConfig.getContentType()) ? FORM_DATA_UTF_8 :
                 MediaType.parse(this.httpConfig.getContentType()),
             null == this.header ? null : this.header.getHeaders());
-        return exec(requestBuilder);
+        return execStr(requestBuilder);
     }
 
-    public String exec(Request.Builder requestBuilder) {
+    public String execStr(Request.Builder requestBuilder) {
         String result = Constants.EMPTY;
         if (null == requestBuilder) {
             return result;
@@ -100,6 +113,25 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
             throw new HttpException("http execute error:" + e.getMessage(), e);
         }
         return result;
+
+    }
+
+    public InputStream execStream(Request.Builder requestBuilder) {
+        if (null == requestBuilder) {
+            return null;
+        }
+
+        Request request = requestBuilder.build();
+        OkHttpClient httpClient = buildClient(clientBuilder, this.httpConfig);
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                return Objects.requireNonNull(response.body()).byteStream();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new HttpException("http execute error:" + e.getMessage(), e);
+        }
+        return null;
 
     }
 }

@@ -9,6 +9,7 @@ import com.hb0730.https.constants.Constants;
 import com.hb0730.https.inter.AbstractSyncHttp;
 import com.hb0730.https.utils.StringUtils;
 
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -63,6 +64,21 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
             return execute.body();
         }
         return Constants.EMPTY;
+    }
+
+    @Override
+    public InputStream postStream(String url, String dataJson) {
+        if (StringUtils.isEmpty(url)) {
+            return null;
+        }
+        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getRequest(builder, Method.POST);
+        request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
+        HttpResponse execute = request.execute();
+        if (execute.isOk()) {
+            return execute.bodyStream();
+        }
+        return null;
     }
 
     @Override

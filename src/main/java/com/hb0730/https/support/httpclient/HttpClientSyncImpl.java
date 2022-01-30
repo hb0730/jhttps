@@ -27,6 +27,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URI;
@@ -95,7 +96,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         builder.setConfig(buildConfig());
         HttpUriRequest request = builder.build();
         addHeader(request);
-        return this.exec(request);
+        return this.execStr(request);
     }
 
     @Override
@@ -117,7 +118,24 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         builder.setCharset(getCharSet());
         HttpUriRequest uriRequest = builder.build();
         addHeader(uriRequest);
-        return this.exec(uriRequest);
+        return this.execStr(uriRequest);
+    }
+
+    @Override
+    public InputStream postStream(String url, String dataJson) {
+        if (StringUtils.isEmpty(url)) {
+            return null;
+        }
+        RequestBuilder builder = RequestBuilder.post(url);
+        if (!StringUtils.isBlank(dataJson)) {
+            StringEntity entity = new StringEntity(dataJson, getContentType());
+            builder.setEntity(entity);
+        }
+        builder.setConfig(buildConfig());
+        builder.setCharset(getCharSet());
+        HttpUriRequest uriRequest = builder.build();
+        addHeader(uriRequest);
+        return this.execStream(uriRequest);
     }
 
     @Override
@@ -136,7 +154,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         builder.setCharset(getCharSet());
         HttpUriRequest uriRequest = builder.build();
         addHeader(uriRequest);
-        return this.exec(uriRequest);
+        return this.execStr(uriRequest);
     }
 
     private boolean isSuccess(CloseableHttpResponse response) {
@@ -172,7 +190,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         addHeader(request, getHeader());
     }
 
-    private String exec(HttpUriRequest request) {
+    private String execStr(HttpUriRequest request) {
         String result = Constants.EMPTY;
         try (CloseableHttpResponse response = this.httpClient.execute(request)) {
             if (!isSuccess(response)) {
@@ -187,6 +205,22 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
             throw new HttpException("request result error:" + e.getMessage());
         }
         return result;
+    }
+
+    private InputStream execStream(HttpUriRequest request) {
+        try (CloseableHttpResponse response = this.httpClient.execute(request)) {
+            if (!isSuccess(response)) {
+                return null;
+            }
+            HttpEntity entity = response.getEntity();
+            if (null != entity) {
+                return entity.getContent();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new HttpException("request result error:" + e.getMessage());
+        }
+        return null;
     }
 
     private RequestConfig buildConfig() {
