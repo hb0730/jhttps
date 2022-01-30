@@ -10,6 +10,7 @@ import com.hb0730.https.support.hutool.HutoolSyncImpl;
 import com.hb0730.https.support.okhttp3.OkHttp3SyncImpl;
 import com.hb0730.https.utils.ClassUtils;
 
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -129,6 +130,12 @@ public class HttpSync implements SyncHttp {
     public String post(String url, String data) {
         checkHttpNotNull(proxy);
         return proxy.post(url, data);
+    }
+
+    @Override
+    public InputStream postStream(String url, String dataJson) {
+        checkHttpNotNull(proxy);
+        return proxy.post(url, dataJson);
     }
 
     /**
