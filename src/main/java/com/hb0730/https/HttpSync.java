@@ -135,7 +135,7 @@ public class HttpSync implements SyncHttp {
     @Override
     public InputStream postStream(String url, String dataJson) {
         checkHttpNotNull(proxy);
-        return proxy.post(url, dataJson);
+        return proxy.postStream(url, dataJson);
     }
 
     /**
