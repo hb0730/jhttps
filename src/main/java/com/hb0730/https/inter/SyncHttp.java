@@ -1,5 +1,7 @@
 package com.hb0730.https.inter;
 
+import com.hb0730.https.HttpHeader;
+
 import java.io.InputStream;
 import java.util.Map;
 
@@ -44,6 +46,16 @@ public interface SyncHttp extends Http {
      * @return 响应结果
      */
     String post(String url, String dataJson);
+
+    /**
+     * post请求
+     *
+     * @param url      请求地址
+     * @param dataJson 请求参数，json格式
+     * @param header   一次性请求头
+     * @return 响应结果
+     */
+    String post(String url, String dataJson, HttpHeader header);
 
     /**
      * post请求

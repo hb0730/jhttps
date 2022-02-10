@@ -1,5 +1,6 @@
 package com.hb0730.https.support.okhttp3;
 
+import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
@@ -69,6 +70,21 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
             StringUtils.isBlank(this.httpConfig.getContentType()) ?
                 JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
             this.header == null ? null : this.header.getHeaders());
+        return execStr(requestBuilder);
+    }
+
+    @Override
+    public String post(String url, String dataJson, HttpHeader header) {
+        if (StringUtils.isEmpty(url)) {
+            return Constants.EMPTY;
+        }
+        Request.Builder requestBuilder = postJsonRequestBuild(url, dataJson,
+            StringUtils.isBlank(this.httpConfig.getContentType()) ?
+                JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
+            this.header == null ? null : this.header.getHeaders());
+        if (null!=header){
+            header.getHeaders().forEach(requestBuilder::addHeader);
+        }
         return execStr(requestBuilder);
     }
 

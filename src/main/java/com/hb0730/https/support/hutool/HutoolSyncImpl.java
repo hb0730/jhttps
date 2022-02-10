@@ -4,6 +4,7 @@ import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
+import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.inter.AbstractSyncHttp;
@@ -58,6 +59,22 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
         }
         UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
         HttpRequest request = getRequest(builder, Method.POST);
+        request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
+        HttpResponse execute = request.execute();
+        if (execute.isOk()) {
+            return execute.body();
+        }
+        return Constants.EMPTY;
+    }
+
+    @Override
+    public String post(String url, String dataJson, HttpHeader header) {
+        if (StringUtils.isEmpty(url)) {
+            return Constants.EMPTY;
+        }
+        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
+        HttpRequest request = getRequest(builder, Method.POST);
+        request.addHeaders(header.getHeaders());
         request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
         HttpResponse execute = request.execute();
         if (execute.isOk()) {

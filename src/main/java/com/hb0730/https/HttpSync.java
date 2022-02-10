@@ -133,6 +133,12 @@ public class HttpSync implements SyncHttp {
     }
 
     @Override
+    public String post(String url, String dataJson, HttpHeader header) {
+        checkHttpNotNull(proxy);
+        return proxy.post(url, dataJson, header);
+    }
+
+    @Override
     public InputStream postStream(String url, String dataJson) {
         checkHttpNotNull(proxy);
         return proxy.postStream(url, dataJson);

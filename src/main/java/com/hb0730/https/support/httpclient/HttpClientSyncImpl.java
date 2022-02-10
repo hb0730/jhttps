@@ -122,6 +122,24 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
     }
 
     @Override
+    public String post(String url, String dataJson, HttpHeader header) {
+        if (StringUtils.isEmpty(url)) {
+            return Constants.EMPTY;
+        }
+        RequestBuilder builder = RequestBuilder.post(url);
+        if (!StringUtils.isBlank(dataJson)) {
+            StringEntity entity = new StringEntity(dataJson, getContentType());
+            builder.setEntity(entity);
+        }
+        builder.setConfig(buildConfig());
+        builder.setCharset(getCharSet());
+        HttpUriRequest uriRequest = builder.build();
+        addHeader(uriRequest);
+        addHeader(uriRequest, header);
+        return this.execStr(uriRequest);
+    }
+
+    @Override
     public InputStream postStream(String url, String dataJson) {
         if (StringUtils.isEmpty(url)) {
             return null;
