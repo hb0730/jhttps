@@ -26,9 +26,13 @@ public interface IHutoolHttp {
      * @return url builder
      */
     default UrlBuilder urlBuilder(String url, Map<String, String> queryParams, Charset charset, boolean isEnabled) {
+        UrlQuery query = UrlQuery.of(queryParams, isEnabled);
         UrlBuilder builder = UrlBuilder.of(url, charset);
-        UrlQuery query = new UrlQuery(queryParams, isEnabled);
-        return builder.setQuery(query);
+        UrlQuery urlQuery = builder.getQuery();
+        query.addAll(urlQuery.getQueryMap());
+        builder.setQuery(query);
+        return builder;
+
     }
 
     /**
