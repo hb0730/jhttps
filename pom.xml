@@ -50,7 +50,7 @@
         <httpclient.version>4.5.13</httpclient.version>
         <httpclient5.version>5.1.1</httpclient5.version>
         <okhttp3.version>4.9.3</okhttp3.version>
-        <hutool.version>5.7.17</hutool.version>
+        <hutool.version>5.7.19</hutool.version>
     </properties>
 
 
