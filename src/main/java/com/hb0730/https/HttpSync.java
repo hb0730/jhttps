@@ -157,4 +157,9 @@ public class HttpSync implements SyncHttp {
         return proxy.post(url, params);
     }
 
+    @Override
+    public String post(String url, Map<String, String> formData, HttpHeader header) {
+        checkHttpNotNull(proxy);
+        return proxy.post(url, formData, header);
+    }
 }
