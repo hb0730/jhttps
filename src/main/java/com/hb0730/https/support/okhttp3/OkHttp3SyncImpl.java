@@ -63,14 +63,7 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
 
     @Override
     public String post(String url, String data) {
-        if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
-        }
-        Request.Builder requestBuilder = postJsonRequestBuild(url, data,
-            StringUtils.isBlank(this.httpConfig.getContentType()) ?
-                JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
-            this.header == null ? null : this.header.getHeaders());
-        return execStr(requestBuilder);
+        return post(url, data, null);
     }
 
     @Override
@@ -82,7 +75,7 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
             StringUtils.isBlank(this.httpConfig.getContentType()) ?
                 JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
             this.header == null ? null : this.header.getHeaders());
-        if (null!=header){
+        if (null != header) {
             header.getHeaders().forEach(requestBuilder::addHeader);
         }
         return execStr(requestBuilder);
@@ -102,15 +95,24 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
 
     @Override
     public String post(String url, Map<String, String> formdata) {
+        return post(url, formdata, null);
+    }
+
+    @Override
+    public String post(String url, Map<String, String> formData, HttpHeader header) {
         if (StringUtils.isBlank(url)) {
             return Constants.EMPTY;
         }
-        Request.Builder requestBuilder = postFormDataRequestBuild(url, formdata, this.httpConfig.isEncode(),
+        Request.Builder requestBuilder = postFormDataRequestBuild(url, formData, this.httpConfig.isEncode(),
             StringUtils.isBlank(this.httpConfig.getContentType()) ? FORM_DATA_UTF_8 :
                 MediaType.parse(this.httpConfig.getContentType()),
             null == this.header ? null : this.header.getHeaders());
+        if (null != header) {
+            header.getHeaders().forEach(requestBuilder::addHeader);
+        }
         return execStr(requestBuilder);
     }
+
 
     public String execStr(Request.Builder requestBuilder) {
         String result = Constants.EMPTY;

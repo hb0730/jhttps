@@ -54,17 +54,7 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
 
     @Override
     public String post(String url, String dataJson) {
-        if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
-        }
-        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
-        HttpRequest request = getRequest(builder, Method.POST);
-        request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
-        HttpResponse execute = request.execute();
-        if (execute.isOk()) {
-            return execute.body();
-        }
-        return Constants.EMPTY;
+        return post(url, dataJson, null);
     }
 
     @Override
@@ -100,13 +90,19 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
 
     @Override
     public String post(String url, Map<String, String> formdata) {
+        return post(url, formdata, null);
+    }
+
+    @Override
+    public String post(String url, Map<String, String> formData, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
         UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
         HttpRequest request = getRequest(builder, Method.POST);
-        request.formStr(formdata);
+        request.formStr(formData);
         request.contentType(getContentType(Constants.CONTENT_TYPE_FORM_DATA_UTF_8));
+        request.addHeaders(header.getHeaders());
         HttpResponse execute = request.execute();
         if (execute.isOk()) {
             return execute.body();

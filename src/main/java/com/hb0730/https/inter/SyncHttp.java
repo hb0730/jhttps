@@ -75,4 +75,14 @@ public interface SyncHttp extends Http {
      */
     String post(String url, Map<String, String> formdata);
 
+    /**
+     * post 请求
+     *
+     * @param url      请求地址
+     * @param formData 表单参数
+     * @param header   请求头
+     * @return 响应结果
+     */
+    String post(String url, Map<String, String> formData, HttpHeader header);
+
 }

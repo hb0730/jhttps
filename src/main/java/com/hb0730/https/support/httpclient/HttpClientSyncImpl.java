@@ -106,19 +106,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
 
     @Override
     public String post(String url, String dataJson) {
-        if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
-        }
-        RequestBuilder builder = RequestBuilder.post(url);
-        if (!StringUtils.isBlank(dataJson)) {
-            StringEntity entity = new StringEntity(dataJson, getContentType());
-            builder.setEntity(entity);
-        }
-        builder.setConfig(buildConfig());
-        builder.setCharset(getCharSet());
-        HttpUriRequest uriRequest = builder.build();
-        addHeader(uriRequest);
-        return this.execStr(uriRequest);
+        return post(url, dataJson, null);
     }
 
     @Override
@@ -158,13 +146,18 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
 
     @Override
     public String post(String url, Map<String, String> formdata) {
+        return post(url, formdata, null);
+    }
+
+    @Override
+    public String post(String url, Map<String, String> formData, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
             return Constants.EMPTY;
         }
         RequestBuilder builder = RequestBuilder.post(url);
-        if (!CollectionUtils.isEmpty(formdata)) {
-            List<NameValuePair> form = new ArrayList<>(formdata.size());
-            MapUtils.forEach(formdata, (k, v) -> form.add(new BasicNameValuePair(v, k)));
+        if (!CollectionUtils.isEmpty(formData)) {
+            List<NameValuePair> form = new ArrayList<>(formData.size());
+            MapUtils.forEach(formData, (k, v) -> form.add(new BasicNameValuePair(v, k)));
             builder.setEntity(new UrlEncodedFormEntity(form, getCharSet()));
         }
         builder.setCharset(getCharSet());
@@ -172,6 +165,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         builder.setCharset(getCharSet());
         HttpUriRequest uriRequest = builder.build();
         addHeader(uriRequest);
+        addHeader(uriRequest, header);
         return this.execStr(uriRequest);
     }
 
