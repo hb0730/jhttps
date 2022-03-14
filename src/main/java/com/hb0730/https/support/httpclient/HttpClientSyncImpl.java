@@ -5,9 +5,11 @@ import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractSyncHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.utils.CollectionUtils;
 import com.hb0730.https.utils.MapUtils;
 import com.hb0730.https.utils.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -35,8 +37,10 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * http sync client 实现
@@ -63,14 +67,14 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
 
 
     @Override
-    public String get(String url) {
+    public SimpleHttpResponse get(String url) {
         return get(url, null);
     }
 
     @Override
-    public String get(String url, Map<String, String> params) {
+    public SimpleHttpResponse get(String url, Map<String, String> params) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         URI uri;
         try {
@@ -96,23 +100,23 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         builder.setConfig(buildConfig());
         HttpUriRequest request = builder.build();
         addHeader(request);
-        return this.execStr(request);
+        return this.exec(request);
     }
 
     @Override
-    public String post(String url) {
+    public SimpleHttpResponse post(String url) {
         return post(url, Constants.EMPTY);
     }
 
     @Override
-    public String post(String url, String dataJson) {
+    public SimpleHttpResponse post(String url, String dataJson) {
         return post(url, dataJson, null);
     }
 
     @Override
-    public String post(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         RequestBuilder builder = RequestBuilder.post(url);
         if (!StringUtils.isBlank(dataJson)) {
@@ -124,35 +128,17 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         HttpUriRequest uriRequest = builder.build();
         addHeader(uriRequest);
         addHeader(uriRequest, header);
-        return this.execStr(uriRequest);
+        return this.exec(uriRequest);
     }
-
     @Override
-    public InputStream postStream(String url, String dataJson) {
-        if (StringUtils.isEmpty(url)) {
-            return null;
-        }
-        RequestBuilder builder = RequestBuilder.post(url);
-        if (!StringUtils.isBlank(dataJson)) {
-            StringEntity entity = new StringEntity(dataJson, getContentType());
-            builder.setEntity(entity);
-        }
-        builder.setConfig(buildConfig());
-        builder.setCharset(getCharSet());
-        HttpUriRequest uriRequest = builder.build();
-        addHeader(uriRequest);
-        return this.execStream(uriRequest);
-    }
-
-    @Override
-    public String post(String url, Map<String, String> formdata) {
+    public SimpleHttpResponse post(String url, Map<String, String> formdata) {
         return post(url, formdata, null);
     }
 
     @Override
-    public String post(String url, Map<String, String> formData, HttpHeader header) {
+    public SimpleHttpResponse post(String url, Map<String, String> formData, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         RequestBuilder builder = RequestBuilder.post(url);
         if (!CollectionUtils.isEmpty(formData)) {
@@ -166,7 +152,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         HttpUriRequest uriRequest = builder.build();
         addHeader(uriRequest);
         addHeader(uriRequest, header);
-        return this.execStr(uriRequest);
+        return this.exec(uriRequest);
     }
 
     private boolean isSuccess(CloseableHttpResponse response) {
@@ -202,37 +188,24 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         addHeader(request, getHeader());
     }
 
-    private String execStr(HttpUriRequest request) {
-        String result = Constants.EMPTY;
+    private SimpleHttpResponse exec(HttpUriRequest request) {
         try (CloseableHttpResponse response = this.httpClient.execute(request)) {
-            if (!isSuccess(response)) {
-                return null;
-            }
+            boolean success = isSuccess(response);
             HttpEntity entity = response.getEntity();
-            if (null != entity) {
-                result = EntityUtils.toString(entity, getCharSet());
-            }
+            Map<String, List<String>> headers = Arrays.stream(response.getAllHeaders())
+                .collect(Collectors.toMap(Header::getName,
+                    (value) -> {
+                        List<String> valueList = new ArrayList<>();
+                        valueList.add(value.getValue());
+                        return valueList;
+                    }
+                    , (v1Value, v2Value) -> v2Value));
+            return SimpleHttpResponse.builder()
+                .success(success)
+                .body(entity.getContent()).headers(headers).build();
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new HttpException("request result error:" + e.getMessage());
+            throw new HttpException("request error:" + e.getMessage());
         }
-        return result;
-    }
-
-    private InputStream execStream(HttpUriRequest request) {
-        try (CloseableHttpResponse response = this.httpClient.execute(request)) {
-            if (!isSuccess(response)) {
-                return null;
-            }
-            HttpEntity entity = response.getEntity();
-            if (null != entity) {
-                return entity.getContent();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new HttpException("request result error:" + e.getMessage());
-        }
-        return null;
     }
 
     private RequestConfig buildConfig() {

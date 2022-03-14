@@ -5,11 +5,13 @@ import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractSyncHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.utils.StringUtils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,36 +42,36 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
     }
 
     @Override
-    public String get(String url) {
+    public SimpleHttpResponse get(String url) {
         return get(url, null);
     }
 
     @Override
-    public String get(String url, Map<String, String> params) {
+    public SimpleHttpResponse get(String url, Map<String, String> params) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         Request.Builder builder = getRequestBuilder(url, params,
             this.httpConfig.isEncode(),
             this.header == null ? null : this.header.getHeaders());
-        return execStr(builder);
+        return exec(builder);
     }
 
     @Override
-    public String post(String url) {
+    public SimpleHttpResponse post(String url) {
         return this.post(url, "");
     }
 
 
     @Override
-    public String post(String url, String data) {
+    public SimpleHttpResponse post(String url, String data) {
         return post(url, data, null);
     }
 
     @Override
-    public String post(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         Request.Builder requestBuilder = postJsonRequestBuild(url, dataJson,
             StringUtils.isBlank(this.httpConfig.getContentType()) ?
@@ -78,30 +80,18 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
         if (null != header) {
             header.getHeaders().forEach(requestBuilder::addHeader);
         }
-        return execStr(requestBuilder);
+        return exec(requestBuilder);
     }
 
     @Override
-    public InputStream postStream(String url, String dataJson) {
-        if (StringUtils.isEmpty(url)) {
-            return null;
-        }
-        Request.Builder requestBuilder = postJsonRequestBuild(url, dataJson,
-            StringUtils.isBlank(this.httpConfig.getContentType()) ?
-                JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
-            this.header == null ? null : this.header.getHeaders());
-        return execStream(requestBuilder);
-    }
-
-    @Override
-    public String post(String url, Map<String, String> formdata) {
+    public SimpleHttpResponse post(String url, Map<String, String> formdata) {
         return post(url, formdata, null);
     }
 
     @Override
-    public String post(String url, Map<String, String> formData, HttpHeader header) {
+    public SimpleHttpResponse post(String url, Map<String, String> formData, HttpHeader header) {
         if (StringUtils.isBlank(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         Request.Builder requestBuilder = postFormDataRequestBuild(url, formData, this.httpConfig.isEncode(),
             StringUtils.isBlank(this.httpConfig.getContentType()) ? FORM_DATA_UTF_8 :
@@ -110,46 +100,27 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
         if (null != header) {
             header.getHeaders().forEach(requestBuilder::addHeader);
         }
-        return execStr(requestBuilder);
+        return exec(requestBuilder);
     }
 
-
-    public String execStr(Request.Builder requestBuilder) {
-        String result = Constants.EMPTY;
+    private SimpleHttpResponse exec(Request.Builder requestBuilder) {
         if (null == requestBuilder) {
-            return result;
+            return SimpleHttpResponse.builder().success(false).build();
         }
-
         Request request = requestBuilder.build();
         OkHttpClient httpClient = buildClient(clientBuilder, this.httpConfig);
         try (Response response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
-                result = Objects.requireNonNull(response.body()).string();
+            ResponseBody body = response.body();
+            InputStream stream = null;
+            if (null != body) {
+                stream = body.byteStream();
             }
+            return SimpleHttpResponse.builder()
+                .success(response.isSuccessful())
+                .headers(response.headers().toMultimap())
+                .body(stream).build();
         } catch (IOException e) {
-            e.printStackTrace();
             throw new HttpException("http execute error:" + e.getMessage(), e);
         }
-        return result;
-
-    }
-
-    public InputStream execStream(Request.Builder requestBuilder) {
-        if (null == requestBuilder) {
-            return null;
-        }
-
-        Request request = requestBuilder.build();
-        OkHttpClient httpClient = buildClient(clientBuilder, this.httpConfig);
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
-                return Objects.requireNonNull(response.body()).byteStream();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new HttpException("http execute error:" + e.getMessage(), e);
-        }
-        return null;
-
     }
 }

@@ -1,6 +1,5 @@
 package com.hb0730.https.support.hutool;
 
-import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -9,9 +8,9 @@ import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractAsyncHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.support.callback.HttpCallback;
 import com.hb0730.https.utils.StringUtils;
-import org.apache.hc.client5.http.ClientProtocolException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -77,16 +76,16 @@ public class HutoolAsyncImpl extends AbstractAsyncHttp implements IHutoolHttp {
 
     private void response(HttpCallback httpCallback, HttpRequest request) {
         try (HttpResponse response = request.executeAsync()) {
-            if (response.isOk()) {
-                String body = IoUtil.read(response.bodyStream(), Constants.DEFAULT_ENCODING);
-                httpCallback.success(body);
-            } else {
-                httpCallback.failure(new ClientProtocolException("Unexpected response status: " + response.getStatus()));
-            }
+            SimpleHttpResponse.SimpleHttpResponseBuilder body = SimpleHttpResponse.builder()
+                .success(response.isOk())
+                .headers(response.headers())
+                .body(response.bodyStream());
+            httpCallback.response(body.build());
         } catch (IOException e) {
             httpCallback.failure(e);
         }
     }
+
     private String getContentType(String defaultContentType) {
         if (StringUtils.isBlank(this.httpConfig.getContentType())) {
             return defaultContentType;

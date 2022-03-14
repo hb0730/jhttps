@@ -1,10 +1,6 @@
 package com.hb0730.https.support.callback;
 
-import com.hb0730.https.support.httpclient.HttpClientAsyncImpl;
-import com.hb0730.https.support.okhttp3.OkHttp3AsyncImpl;
-import okhttp3.Request;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import com.hb0730.https.support.SimpleHttpResponse;
 
 import java.io.IOException;
 
@@ -21,16 +17,26 @@ public interface HttpCallback {
      *
      * @param result 响应结果
      * @throws IOException 异常
-     * @see OkHttp3AsyncImpl#exec(Request.Builder, HttpCallback)
-     * @see HttpClientAsyncImpl#exec(HttpUriRequestBase, BasicRequestProducer, HttpCallback)
+     * @see #response(SimpleHttpResponse)
      */
-    void success(String result) throws IOException;
+    @Deprecated
+    default void success(String result) throws IOException {
+    }
+
+    /**
+     * 响应成功 200 &gt;= http code &lt; 300
+     *
+     * @param response 响应结果
+     * @throws IOException 异常
+     */
+    void response(SimpleHttpResponse response) throws IOException;
 
     /**
      * 请求参数
      *
      * @param e 异常
      */
-    void failure(Exception e);
-
+    @Deprecated
+    default void failure(Exception e) {
+    }
 }

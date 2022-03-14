@@ -5,12 +5,12 @@ import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractSyncHttp;
 import com.hb0730.https.inter.SyncHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.support.httpclient.HttpClientSyncImpl;
 import com.hb0730.https.support.hutool.HutoolSyncImpl;
 import com.hb0730.https.support.okhttp3.OkHttp3SyncImpl;
 import com.hb0730.https.utils.ClassUtils;
 
-import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -89,7 +89,7 @@ public class HttpSync implements SyncHttp {
      * @return 结果
      */
     @Override
-    public String get(String url) {
+    public SimpleHttpResponse get(String url) {
         checkHttpNotNull(proxy);
         return proxy.get(url);
     }
@@ -102,7 +102,7 @@ public class HttpSync implements SyncHttp {
      * @return 结果
      */
     @Override
-    public String get(String url, Map<String, String> params) {
+    public SimpleHttpResponse get(String url, Map<String, String> params) {
         checkHttpNotNull(proxy);
         return proxy.get(url, params);
     }
@@ -114,7 +114,7 @@ public class HttpSync implements SyncHttp {
      * @return 结果
      */
     @Override
-    public String post(String url) {
+    public SimpleHttpResponse post(String url) {
         checkHttpNotNull(proxy);
         return proxy.post(url);
     }
@@ -127,21 +127,15 @@ public class HttpSync implements SyncHttp {
      * @return 结果
      */
     @Override
-    public String post(String url, String data) {
+    public SimpleHttpResponse post(String url, String data) {
         checkHttpNotNull(proxy);
         return proxy.post(url, data);
     }
 
     @Override
-    public String post(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
         checkHttpNotNull(proxy);
         return proxy.post(url, dataJson, header);
-    }
-
-    @Override
-    public InputStream postStream(String url, String dataJson) {
-        checkHttpNotNull(proxy);
-        return proxy.postStream(url, dataJson);
     }
 
     /**
@@ -152,13 +146,13 @@ public class HttpSync implements SyncHttp {
      * @return 结果
      */
     @Override
-    public String post(String url, Map<String, String> params) {
+    public SimpleHttpResponse post(String url, Map<String, String> params) {
         checkHttpNotNull(proxy);
         return proxy.post(url, params);
     }
 
     @Override
-    public String post(String url, Map<String, String> formData, HttpHeader header) {
+    public SimpleHttpResponse post(String url, Map<String, String> formData, HttpHeader header) {
         checkHttpNotNull(proxy);
         return proxy.post(url, formData, header);
     }

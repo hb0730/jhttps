@@ -4,12 +4,12 @@ import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractAsyncHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.support.callback.HttpCallback;
 import com.hb0730.https.utils.CollectionUtils;
 import com.hb0730.https.utils.MapUtils;
 import com.hb0730.https.utils.StringUtils;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
@@ -18,20 +18,21 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
-import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.net.WWWFormCodec;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URI;
@@ -39,9 +40,11 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * HTTPClient async,需要自行关闭{@link #httpClient}
@@ -140,21 +143,28 @@ public class HttpClientAsyncImpl extends AbstractAsyncHttp {
 
     private void exec(AsyncRequestProducer producer, HttpCallback httpCallback) {
         this.httpClient.start();
-        CharCodingConfig config = CharCodingConfig.custom().setCharset(getCharSet()).build();
-        StringAsyncEntityConsumer stringConsumer = new StringAsyncEntityConsumer(config);
-        BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(stringConsumer);
-        this.httpClient.execute(producer, responseConsumer, new FutureCallback<Message<HttpResponse, String>>() {
-            @SneakyThrows
+        this.httpClient.execute(producer, new BasicResponseConsumer<byte[]>(new BasicAsyncEntityConsumer()), new FutureCallback<Message<HttpResponse, byte[]>>() {
             @Override
-            public void completed(Message<HttpResponse, String> result) {
-                if (null == httpCallback) {
-                    return;
-                }
-                HttpResponse head = result.getHead();
-                if (head.getCode() >= HttpStatus.SC_SUCCESS && head.getCode() < HttpStatus.SC_REDIRECTION) {
-                    httpCallback.success(result.getBody());
-                } else {
-                    httpCallback.failure(new HttpException("Unexpected response status: " + head.getCode()));
+            public void completed(Message<HttpResponse, byte[]> result) {
+                HttpResponse response = result.getHead();
+                boolean success = (response.getCode() >= HttpStatus.SC_SUCCESS && response.getCode() < HttpStatus.SC_REDIRECTION);
+                Map<String, List<String>> headers = Arrays.stream(response.getHeaders())
+                    .collect(Collectors.toMap(Header::getName,
+                        (value) -> {
+                            List<String> valueList = new ArrayList<>();
+                            valueList.add(value.getValue());
+                            return valueList;
+                        }
+                        , (v1Value, v2Value) -> v2Value));
+                SimpleHttpResponse httpResponse = SimpleHttpResponse
+                    .builder()
+                    .success(success)
+                    .headers(headers)
+                    .build().body(result.getBody());
+                try {
+                    httpCallback.response(httpResponse);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
 

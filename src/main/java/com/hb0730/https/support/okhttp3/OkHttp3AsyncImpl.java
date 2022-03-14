@@ -3,6 +3,7 @@ package com.hb0730.https.support.okhttp3;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractAsyncHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.support.callback.HttpCallback;
 import com.hb0730.https.utils.StringUtils;
 import okhttp3.Call;
@@ -99,9 +100,11 @@ public class OkHttp3AsyncImpl extends AbstractAsyncHttp implements IOkhttp3 {
                     return;
                 }
                 try (ResponseBody responseBody = response.body()) {
-                    if (response.isSuccessful()) {
-                        httpCallback.success(responseBody.string());
-                    }
+                    SimpleHttpResponse httpResponse = SimpleHttpResponse.builder()
+                        .success(response.isSuccessful())
+                        .headers(response.headers().toMultimap())
+                        .body(responseBody.byteStream()).build();
+                    httpCallback.response(httpResponse);
                 }
             }
         });

@@ -1,6 +1,7 @@
 package com.hb0730.https.support.hutool;
 
 import cn.hutool.core.net.url.UrlBuilder;
+import cn.hutool.http.HttpException;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
@@ -8,9 +9,9 @@ import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.inter.AbstractSyncHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.utils.StringUtils;
 
-import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -29,85 +30,76 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
     }
 
     @Override
-    public String get(String url) {
+    public SimpleHttpResponse get(String url) {
         return get(url, null);
     }
 
     @Override
-    public String get(String url, Map<String, String> params) {
+    public SimpleHttpResponse get(String url, Map<String, String> params) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         UrlBuilder builder = urlBuilder(url, params, httpConfig.getCharset(), httpConfig.isEncode());
         HttpRequest request = getRequest(builder, Method.GET);
         HttpResponse execute = request.execute();
-        if (execute.isOk()) {
-            return execute.body();
-        }
-        return Constants.EMPTY;
+        return SimpleHttpResponse.builder()
+            .success(execute.isOk())
+            .headers(execute.headers())
+            .body(execute.bodyStream()).build();
     }
 
     @Override
-    public String post(String url) {
+    public SimpleHttpResponse post(String url) {
         return this.post(url, (String) null);
     }
 
     @Override
-    public String post(String url, String dataJson) {
+    public SimpleHttpResponse post(String url, String dataJson) {
         return post(url, dataJson, null);
     }
 
     @Override
-    public String post(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
         HttpRequest request = getRequest(builder, Method.POST);
-        request.addHeaders(header.getHeaders());
+        if (null != header) {
+            request.addHeaders(header.getHeaders());
+        }
         request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
         HttpResponse execute = request.execute();
-        if (execute.isOk()) {
-            return execute.body();
-        }
-        return Constants.EMPTY;
+        return SimpleHttpResponse.builder()
+            .success(execute.isOk())
+            .body(execute.bodyStream())
+            .headers(execute.headers())
+            .build();
     }
 
     @Override
-    public InputStream postStream(String url, String dataJson) {
-        if (StringUtils.isEmpty(url)) {
-            return null;
-        }
-        UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
-        HttpRequest request = getRequest(builder, Method.POST);
-        request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
-        HttpResponse execute = request.execute();
-        if (execute.isOk()) {
-            return execute.bodyStream();
-        }
-        return null;
-    }
-
-    @Override
-    public String post(String url, Map<String, String> formdata) {
+    public SimpleHttpResponse post(String url, Map<String, String> formdata) {
         return post(url, formdata, null);
     }
 
     @Override
-    public String post(String url, Map<String, String> formData, HttpHeader header) {
+    public SimpleHttpResponse post(String url, Map<String, String> formData, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
-            return Constants.EMPTY;
+            throw new HttpException("url missing");
         }
         UrlBuilder builder = urlBuilder(url, null, httpConfig.getCharset(), httpConfig.isEncode());
         HttpRequest request = getRequest(builder, Method.POST);
         request.formStr(formData);
         request.contentType(getContentType(Constants.CONTENT_TYPE_FORM_DATA_UTF_8));
-        request.addHeaders(header.getHeaders());
-        HttpResponse execute = request.execute();
-        if (execute.isOk()) {
-            return execute.body();
+        if (null != header) {
+            request.addHeaders(header.getHeaders());
         }
-        return Constants.EMPTY;
+        HttpResponse execute = request.execute();
+        return SimpleHttpResponse.builder()
+            .success(execute.isOk())
+            .body(execute.bodyStream())
+            .headers(execute.headers())
+            .build();
     }
 
     private HttpRequest getRequest(UrlBuilder url, Method method) {

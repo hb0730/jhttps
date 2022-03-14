@@ -1,6 +1,7 @@
 package com.hb0730.https.inter;
 
 import com.hb0730.https.HttpHeader;
+import com.hb0730.https.support.SimpleHttpResponse;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -19,7 +20,7 @@ public interface SyncHttp extends Http {
      * @param url 请求地址
      * @return 响应结果
      */
-    String get(String url);
+    SimpleHttpResponse get(String url);
 
     /**
      * get 请求
@@ -28,7 +29,7 @@ public interface SyncHttp extends Http {
      * @param params 请求参数
      * @return 响应结果
      */
-    String get(String url, Map<String, String> params);
+    SimpleHttpResponse get(String url, Map<String, String> params);
 
     /**
      * post请求
@@ -36,7 +37,7 @@ public interface SyncHttp extends Http {
      * @param url 请求地址
      * @return 响应结果
      */
-    String post(String url);
+    SimpleHttpResponse post(String url);
 
     /**
      * post请求
@@ -45,7 +46,7 @@ public interface SyncHttp extends Http {
      * @param dataJson 请求参数，json格式
      * @return 响应结果
      */
-    String post(String url, String dataJson);
+    SimpleHttpResponse post(String url, String dataJson);
 
     /**
      * post请求
@@ -55,16 +56,7 @@ public interface SyncHttp extends Http {
      * @param header   一次性请求头
      * @return 响应结果
      */
-    String post(String url, String dataJson, HttpHeader header);
-
-    /**
-     * post请求
-     *
-     * @param url      请求地址
-     * @param dataJson 请求参数,json格式
-     * @return 响应流
-     */
-    InputStream postStream(String url, String dataJson);
+    SimpleHttpResponse post(String url, String dataJson, HttpHeader header);
 
     /**
      * post请求
@@ -73,7 +65,7 @@ public interface SyncHttp extends Http {
      * @param formdata form 参数
      * @return 响应结果
      */
-    String post(String url, Map<String, String> formdata);
+    SimpleHttpResponse post(String url, Map<String, String> formdata);
 
     /**
      * post 请求
@@ -83,6 +75,6 @@ public interface SyncHttp extends Http {
      * @param header   请求头
      * @return 响应结果
      */
-    String post(String url, Map<String, String> formData, HttpHeader header);
+    SimpleHttpResponse post(String url, Map<String, String> formData, HttpHeader header);
 
 }
