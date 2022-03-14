@@ -41,10 +41,10 @@ public class SimpleHttpResponse {
      * 获取body，默认UTF-8编码
      *
      * @return body
-     * @see #getBody(Charset)
+     * @see #getBodyStr(Charset)
      */
-    public String getBody() {
-        return this.getBody(StandardCharsets.UTF_8);
+    public String getBodyStr() {
+        return this.getBodyStr(StandardCharsets.UTF_8);
     }
 
     /**
@@ -53,7 +53,7 @@ public class SimpleHttpResponse {
      * @param charset 编码格式
      * @return body
      */
-    public String getBody(Charset charset) {
+    public String getBodyStr(Charset charset) {
         return IoUtil.read(this.body, charset);
     }
 
