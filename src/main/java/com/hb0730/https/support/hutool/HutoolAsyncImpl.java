@@ -79,7 +79,7 @@ public class HutoolAsyncImpl extends AbstractAsyncHttp implements IHutoolHttp {
             SimpleHttpResponse.SimpleHttpResponseBuilder body = SimpleHttpResponse.builder()
                 .success(response.isOk())
                 .headers(response.headers())
-                .body(response.bodyStream());
+                .body(response.bodyBytes());
             httpCallback.response(body.build());
         } catch (IOException e) {
             httpCallback.failure(e);

@@ -1,12 +1,10 @@
 package com.hb0730.https.support;
 
-import cn.hutool.core.io.IoUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -35,7 +33,7 @@ public class SimpleHttpResponse {
     /**
      * body stream
      */
-    private InputStream body;
+    private byte[] body;
 
     /**
      * 获取body，默认UTF-8编码
@@ -54,11 +52,11 @@ public class SimpleHttpResponse {
      * @return body
      */
     public String getBodyStr(Charset charset) {
-        return IoUtil.read(this.body, charset);
+        return new String(this.body, charset);
     }
 
     public SimpleHttpResponse body(byte[] body) {
-        this.body = IoUtil.toStream(body);
+        this.body = body;
         return this;
     }
 }

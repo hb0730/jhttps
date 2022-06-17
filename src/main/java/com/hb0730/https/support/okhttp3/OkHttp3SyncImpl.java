@@ -1,8 +1,8 @@
 package com.hb0730.https.support.okhttp3;
 
+import cn.hutool.core.io.IoUtil;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
-import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.inter.AbstractSyncHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
@@ -16,7 +16,6 @@ import okhttp3.ResponseBody;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * okhttp3 sync impl
@@ -118,7 +117,7 @@ public class OkHttp3SyncImpl extends AbstractSyncHttp implements IOkhttp3 {
             return SimpleHttpResponse.builder()
                 .success(response.isSuccessful())
                 .headers(response.headers().toMultimap())
-                .body(stream).build();
+                .body(IoUtil.readBytes(stream, false)).build();
         } catch (IOException e) {
             throw new HttpException("http execute error:" + e.getMessage(), e);
         }

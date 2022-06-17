@@ -103,7 +103,7 @@ public class OkHttp3AsyncImpl extends AbstractAsyncHttp implements IOkhttp3 {
                     SimpleHttpResponse httpResponse = SimpleHttpResponse.builder()
                         .success(response.isSuccessful())
                         .headers(response.headers().toMultimap())
-                        .body(responseBody.byteStream()).build();
+                        .body(responseBody == null ? null : responseBody.bytes()).build();
                     httpCallback.response(httpResponse);
                 }
             }

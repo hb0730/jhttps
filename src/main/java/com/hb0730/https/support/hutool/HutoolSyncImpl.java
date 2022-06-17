@@ -41,11 +41,7 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
         }
         UrlBuilder builder = urlBuilder(url, params, httpConfig.getCharset(), httpConfig.isEncode());
         HttpRequest request = getRequest(builder, Method.GET);
-        HttpResponse execute = request.execute();
-        return SimpleHttpResponse.builder()
-            .success(execute.isOk())
-            .headers(execute.headers())
-            .body(execute.bodyStream()).build();
+        return this.exec(request);
     }
 
     @Override
@@ -69,12 +65,7 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
             request.addHeaders(header.getHeaders());
         }
         request.body(dataJson, getContentType(Constants.CONTENT_TYPE_JSON_UTF_8));
-        HttpResponse execute = request.execute();
-        return SimpleHttpResponse.builder()
-            .success(execute.isOk())
-            .body(execute.bodyStream())
-            .headers(execute.headers())
-            .build();
+        return this.exec(request);
     }
 
     @Override
@@ -94,12 +85,20 @@ public class HutoolSyncImpl extends AbstractSyncHttp implements IHutoolHttp {
         if (null != header) {
             request.addHeaders(header.getHeaders());
         }
-        HttpResponse execute = request.execute();
-        return SimpleHttpResponse.builder()
-            .success(execute.isOk())
-            .body(execute.bodyStream())
-            .headers(execute.headers())
-            .build();
+        return this.exec(request);
+
+    }
+
+    private SimpleHttpResponse exec(HttpRequest request) {
+        try (HttpResponse response = request.execute()) {
+            return SimpleHttpResponse.builder()
+                .success(response.isOk())
+                .body(response.bodyBytes())
+                .headers(response.headers())
+                .build();
+        } catch (Exception e) {
+            throw new com.hb0730.https.exception.HttpException("request error:" + e.getMessage());
+        }
     }
 
     private HttpRequest getRequest(UrlBuilder url, Method method) {

@@ -1,5 +1,6 @@
 package com.hb0730.https.support.httpclient;
 
+import cn.hutool.core.io.IoUtil;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
@@ -130,6 +131,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         addHeader(uriRequest, header);
         return this.exec(uriRequest);
     }
+
     @Override
     public SimpleHttpResponse post(String url, Map<String, String> formdata) {
         return post(url, formdata, null);
@@ -202,7 +204,7 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
                     , (v1Value, v2Value) -> v2Value));
             return SimpleHttpResponse.builder()
                 .success(success)
-                .body(entity.getContent()).headers(headers).build();
+                .body(IoUtil.readBytes(entity.getContent(), false)).headers(headers).build();
         } catch (IOException e) {
             throw new HttpException("request error:" + e.getMessage());
         }
