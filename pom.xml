@@ -45,12 +45,12 @@
         <project.reporting.outputEncoding>utf-8</project.reporting.outputEncoding>
         <compile.version>8</compile.version>
 
-        <junit.version>4.13.2</junit.version>
-        <lombok.version>1.18.22</lombok.version>
+        <junit.version>5.8.2</junit.version>
+        <lombok.version>1.18.24</lombok.version>
         <httpclient.version>4.5.13</httpclient.version>
         <httpclient5.version>5.1.1</httpclient5.version>
         <okhttp3.version>4.9.3</okhttp3.version>
-        <hutool.version>5.7.19</hutool.version>
+        <hutool.version>5.8.3</hutool.version>
     </properties>
 
 
@@ -68,9 +68,9 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>${httpclient5.version}</version>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>${httpclient.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -86,12 +86,15 @@
             <optional>true</optional>
         </dependency>
 
+
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+
     </dependencies>
 
     <distributionManagement>

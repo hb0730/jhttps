@@ -28,6 +28,11 @@ public interface Constants {
     String CONTENT_TYPE_FORM_DATA_UTF_8 = "application/x-www-form-urlencoded; charset=utf-8";
 
     /**
+     * multipart/form-data
+     */
+    String MULTIPART = "multipart/form-data";
+
+    /**
      * Content-Type
      */
     String CONTENT_TYPE = "Content-Type";

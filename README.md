@@ -19,28 +19,20 @@
 java http integration (okhttp3,apache client....)
 
 # maven
+
 ```xml
+
 <dependency>
-  <groupId>com.hb0730</groupId>
-  <artifactId>https</artifactId>
-  <version>${version}</version>
+    <groupId>com.hb0730</groupId>
+    <artifactId>https</artifactId>
+    <version>${version}</version>
 </dependency>
 ```
 
-## Support
-* sync `Apache httpClient4 -> OkHttp3 v4 -> Hutool-Http` 
-* async `Apache httpClient5 ->Okhttp3 v4`
-## example
-### get
+# use
+
 ```java
-HttpSync http = Https.SYNC.getHttp();
-String s = http.get("https://baidu.com");
-```
-```java
-HttpSync http = Https.SYNC.getHttp();
-String s = http.get("https://baidu.com");
-log.debug(s);
-s = http.setHttp(new OkHttp3SyncImpl())
-        .get("https://baidu.com");
-log.debug(s);
+import com.hb0730.https.SimpleHttp;
+
+SimpleHttpResponse response=SimpleHttp.HTTP.get("");
 ```

@@ -1,5 +1,9 @@
 package com.hb0730.https.support.okhttp3;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ArrayUtil;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
@@ -7,10 +11,12 @@ import com.hb0730.https.utils.MapUtils;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -92,6 +98,57 @@ public interface IOkhttp3 {
         }
         FormBody formBody = formBuild.build();
         return builder.post(formBody);
+    }
+
+    default Request.Builder postFormFileRequestBuild(String url, Map<String, Object> formdata, Map<String,
+        String> headers) {
+        HttpUrl httpUrl = buildHttpUrl(url, null, true);
+        Request.Builder builder = new Request.Builder().url(httpUrl);
+        if (null != headers) {
+            MapUtils.forEach(headers, builder::addHeader);
+        }
+        builder.addHeader(Constants.CONTENT_TYPE, Constants.MULTIPART);
+        MultipartBody.Builder multipartBody = new MultipartBody.Builder();
+        multipartBody.setType(MultipartBody.FORM);
+        for (Map.Entry<String, Object> entry : formdata.entrySet()) {
+            String name = entry.getKey();
+            Object value = entry.getValue();
+            if (value instanceof File) {
+                multipartBody.addFormDataPart(
+                    name,
+                    ((File) value).getName(),
+                    RequestBody.create(
+                        (File) value,
+                        MediaType.parse(FileUtil.getMimeType(((File) value).toPath()))
+                    )
+                );
+                continue;
+            }
+            String strValue;
+            if (value instanceof Iterable) {
+                // 列表对象
+                strValue = CollUtil.join((Iterable<?>) value, ",");
+            } else if (ArrayUtil.isArray(value)) {
+                if (File.class == ArrayUtil.getComponentType(value)) {
+                    File[] files = (File[]) value;
+                    for (int i = 0; i < files.length; i++) {
+                        MultipartBody.Part part = MultipartBody.Part.createFormData(
+                            name + i, files[i].getName(), RequestBody.create(files[i],
+                                MediaType.parse(FileUtil.getMimeType(files[i].getName()))));
+                        multipartBody.addPart(part);
+                    }
+                    continue;
+                }
+                // 数组对象
+                strValue = ArrayUtil.join((Object[]) value, ",");
+            } else {
+                // 其他对象一律转换为字符串
+                strValue = Convert.toStr(value, null);
+            }
+            multipartBody.addFormDataPart(name, strValue);
+        }
+        MultipartBody body = multipartBody.build();
+        return builder.post(body);
     }
 
     /**

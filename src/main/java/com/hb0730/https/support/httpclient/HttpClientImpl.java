@@ -1,11 +1,17 @@
 package com.hb0730.https.support.httpclient;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
-import com.hb0730.https.inter.AbstractSyncHttp;
+import com.hb0730.https.inter.AbstractSimpleHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.utils.CollectionUtils;
 import com.hb0730.https.utils.MapUtils;
@@ -24,13 +30,15 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.FormBodyPartBuilder;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URI;
@@ -39,29 +47,30 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * http sync client 实现
+ * http client 实现
  *
  * @author bing_huang
- * @since 1.0.0
+ * @since 4.0.0
  */
-public class HttpClientSyncImpl extends AbstractSyncHttp {
+public class HttpClientImpl extends AbstractSimpleHttp {
     private final CloseableHttpClient httpClient;
 
-    public HttpClientSyncImpl() {
+    public HttpClientImpl() {
         this(HttpConfig.builder().build(), HttpClients.createDefault());
     }
 
-    public HttpClientSyncImpl(CloseableHttpClient httpClient) {
+    public HttpClientImpl(CloseableHttpClient httpClient) {
         super(HttpConfig.builder().build());
         this.httpClient = httpClient;
     }
 
-    public HttpClientSyncImpl(HttpConfig httpConfig, CloseableHttpClient httpClient) {
+    public HttpClientImpl(HttpConfig httpConfig, CloseableHttpClient httpClient) {
         super(httpConfig);
         this.httpClient = httpClient;
     }
@@ -105,17 +114,17 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
     }
 
     @Override
-    public SimpleHttpResponse post(String url) {
-        return post(url, Constants.EMPTY);
+    public SimpleHttpResponse postFormStr(String url) {
+        return postFormStr(url, Constants.EMPTY);
     }
 
     @Override
-    public SimpleHttpResponse post(String url, String dataJson) {
-        return post(url, dataJson, null);
+    public SimpleHttpResponse postFormStr(String url, String dataJson) {
+        return postFormStr(url, dataJson, null);
     }
 
     @Override
-    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse postFormStr(String url, String dataJson, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
             throw new HttpException("url missing");
         }
@@ -133,12 +142,12 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
     }
 
     @Override
-    public SimpleHttpResponse post(String url, Map<String, String> formdata) {
-        return post(url, formdata, null);
+    public SimpleHttpResponse postFormStr(String url, Map<String, String> formdata) {
+        return postFormStr(url, formdata, null);
     }
 
     @Override
-    public SimpleHttpResponse post(String url, Map<String, String> formData, HttpHeader header) {
+    public SimpleHttpResponse postFormStr(String url, Map<String, String> formData, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
             throw new HttpException("url missing");
         }
@@ -150,7 +159,79 @@ public class HttpClientSyncImpl extends AbstractSyncHttp {
         }
         builder.setCharset(getCharSet());
         builder.setConfig(buildConfig());
+        HttpUriRequest uriRequest = builder.build();
+        addHeader(uriRequest);
+        addHeader(uriRequest, header);
+        return this.exec(uriRequest);
+    }
+
+    @Override
+    public SimpleHttpResponse postFile(String url, String name, String filename, byte[] fileBytes) {
+        File file = FileUtil.writeBytes(fileBytes, System.getProperty("java.io.tmpdir") + File.separator + filename);
+        return this.postFile(url, name, file);
+    }
+
+    @Override
+    public SimpleHttpResponse postFile(String url, String name, File file) {
+        final Map<String, Object> body = new HashMap<String, Object>(1);
+        body.put(name, file);
+        return this.postFormFile(url, body);
+    }
+
+    @Override
+    public SimpleHttpResponse postFormFile(String url, Map<String, Object> formData) {
+        return this.postFormFile(url, formData, null);
+    }
+
+    @Override
+    public SimpleHttpResponse postFormFile(String url, Map<String, Object> formData, HttpHeader header) {
+        if (StringUtils.isEmpty(url)) {
+            throw new HttpException("url missing");
+        }
+        RequestBuilder builder = RequestBuilder.post(url);
+        if (!CollectionUtils.isEmpty(formData)) {
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+            for (Map.Entry<String, Object> entry : formData.entrySet()) {
+                String name = entry.getKey();
+                Object value = entry.getValue();
+                if (StrUtil.isBlank(name) || ObjectUtil.isNull(value)) {
+                    continue;
+                }
+                if (value instanceof File) {
+                    entityBuilder.addBinaryBody(name, (File) value);
+                    continue;
+                }
+                // 普通值
+                String strValue;
+                if (value instanceof Iterable) {
+                    // 列表对象
+                    strValue = CollUtil.join((Iterable<?>) value, ",");
+                } else if (ArrayUtil.isArray(value)) {
+                    if (File.class == ArrayUtil.getComponentType(value)) {
+                        File[] files = (File[]) value;
+                        for (int i = 0; i < files.length; i++) {
+                            entityBuilder.addPart(
+                                FormBodyPartBuilder
+                                    .create()
+                                    .setBody(new FileBody(files[i]))
+                                    .setName(name + i)
+                                    .build());
+                        }
+
+                        continue;
+                    }
+                    // 数组对象
+                    strValue = ArrayUtil.join((Object[]) value, ",");
+                } else {
+                    // 其他对象一律转换为字符串
+                    strValue = Convert.toStr(value, null);
+                }
+                entityBuilder.addTextBody(name, strValue);
+            }
+            builder.setEntity(entityBuilder.build());
+        }
         builder.setCharset(getCharSet());
+        builder.setConfig(buildConfig());
         HttpUriRequest uriRequest = builder.build();
         addHeader(uriRequest);
         addHeader(uriRequest, header);
