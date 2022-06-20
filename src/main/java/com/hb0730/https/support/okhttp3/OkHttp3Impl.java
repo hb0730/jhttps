@@ -4,7 +4,7 @@ import cn.hutool.core.io.FileUtil;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.exception.HttpException;
-import com.hb0730.https.inter.AbstractSimpleHttp;
+import com.hb0730.https.support.AbstractSimpleHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.utils.StringUtils;
 import okhttp3.MediaType;
@@ -58,18 +58,18 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
     }
 
     @Override
-    public SimpleHttpResponse postFormStr(String url) {
-        return this.postFormStr(url, "");
+    public SimpleHttpResponse post(String url) {
+        return this.post(url, "");
     }
 
 
     @Override
-    public SimpleHttpResponse postFormStr(String url, String data) {
-        return postFormStr(url, data, null);
+    public SimpleHttpResponse post(String url, String data) {
+        return post(url, data, null);
     }
 
     @Override
-    public SimpleHttpResponse postFormStr(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
             throw new HttpException("url missing");
         }

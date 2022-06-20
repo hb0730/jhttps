@@ -9,8 +9,7 @@ import cn.hutool.http.Method;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
-import com.hb0730.https.inter.AbstractSimpleHttp;
-import com.hb0730.https.inter.SimpleHttp;
+import com.hb0730.https.support.AbstractSimpleHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.utils.StringUtils;
 
@@ -49,17 +48,17 @@ public class HutoolImpl extends AbstractSimpleHttp implements IHutoolHttp {
     }
 
     @Override
-    public SimpleHttpResponse postFormStr(String url) {
-        return this.postFormStr(url, (String) null);
+    public SimpleHttpResponse post(String url) {
+        return this.post(url, (String) null);
     }
 
     @Override
-    public SimpleHttpResponse postFormStr(String url, String dataJson) {
-        return postFormStr(url, dataJson, null);
+    public SimpleHttpResponse post(String url, String dataJson) {
+        return post(url, dataJson, null);
     }
 
     @Override
-    public SimpleHttpResponse postFormStr(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
         if (StringUtils.isEmpty(url)) {
             throw new HttpException("url missing");
         }

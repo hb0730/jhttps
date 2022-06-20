@@ -1,4 +1,4 @@
-package com.hb0730.https.inter;
+package com.hb0730.https.support;
 
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;

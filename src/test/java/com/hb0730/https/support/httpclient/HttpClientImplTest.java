@@ -1,7 +1,7 @@
 package com.hb0730.https.support.httpclient;
 
 import cn.hutool.core.io.FileUtil;
-import com.hb0730.https.inter.SimpleHttp;
+import com.hb0730.https.support.SimpleHttp;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

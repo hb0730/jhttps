@@ -3,7 +3,7 @@ package com.hb0730.https;
 import com.hb0730.https.config.HttpConfig;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
-import com.hb0730.https.inter.AbstractSimpleHttp;
+import com.hb0730.https.support.AbstractSimpleHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
 import com.hb0730.https.support.httpclient.HttpClientImpl;
 import com.hb0730.https.support.hutool.HutoolImpl;
@@ -19,7 +19,7 @@ import java.util.Map;
  * @author bing_huang
  * @since 4.0.0
  */
-public class SimpleHttp implements com.hb0730.https.inter.SimpleHttp {
+public class SimpleHttp implements com.hb0730.https.support.SimpleHttp {
     /**
      * create http
      */
@@ -52,7 +52,7 @@ public class SimpleHttp implements com.hb0730.https.inter.SimpleHttp {
         }
     }
 
-    private synchronized void checkHttpNotNull(com.hb0730.https.inter.SimpleHttp proxy) {
+    private synchronized void checkHttpNotNull(com.hb0730.https.support.SimpleHttp proxy) {
         if (null == proxy) {
             selectHttpProxy();
         }
@@ -118,9 +118,9 @@ public class SimpleHttp implements com.hb0730.https.inter.SimpleHttp {
      * @return 结果
      */
     @Override
-    public SimpleHttpResponse postFormStr(String url) {
+    public SimpleHttpResponse post(String url) {
         checkHttpNotNull(proxy);
-        return proxy.postFormStr(url);
+        return proxy.post(url);
     }
 
     /**
@@ -131,15 +131,15 @@ public class SimpleHttp implements com.hb0730.https.inter.SimpleHttp {
      * @return 结果
      */
     @Override
-    public SimpleHttpResponse postFormStr(String url, String data) {
+    public SimpleHttpResponse post(String url, String data) {
         checkHttpNotNull(proxy);
-        return proxy.postFormStr(url, data);
+        return proxy.post(url, data);
     }
 
     @Override
-    public SimpleHttpResponse postFormStr(String url, String dataJson, HttpHeader header) {
+    public SimpleHttpResponse post(String url, String dataJson, HttpHeader header) {
         checkHttpNotNull(proxy);
-        return proxy.postFormStr(url, dataJson, header);
+        return proxy.post(url, dataJson, header);
     }
 
     /**

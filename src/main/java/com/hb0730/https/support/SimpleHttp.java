@@ -1,7 +1,6 @@
-package com.hb0730.https.inter;
+package com.hb0730.https.support;
 
 import com.hb0730.https.HttpHeader;
-import com.hb0730.https.support.SimpleHttpResponse;
 
 import java.io.File;
 import java.util.Map;
@@ -37,7 +36,7 @@ public interface SimpleHttp {
      * @param url 请求地址
      * @return 响应结果
      */
-    SimpleHttpResponse postFormStr(String url);
+    SimpleHttpResponse post(String url);
 
     /**
      * post请求
@@ -46,7 +45,7 @@ public interface SimpleHttp {
      * @param dataJson 请求参数，json格式
      * @return 响应结果
      */
-    SimpleHttpResponse postFormStr(String url, String dataJson);
+    SimpleHttpResponse post(String url, String dataJson);
 
     /**
      * post请求
@@ -56,7 +55,7 @@ public interface SimpleHttp {
      * @param header   一次性请求头
      * @return 响应结果
      */
-    SimpleHttpResponse postFormStr(String url, String dataJson, HttpHeader header);
+    SimpleHttpResponse post(String url, String dataJson, HttpHeader header);
 
     /**
      * post 表单请求
