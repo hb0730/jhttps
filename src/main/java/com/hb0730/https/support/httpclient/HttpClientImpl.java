@@ -9,6 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
+import com.hb0730.https.config.Interceptor;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.support.AbstractSimpleHttp;
@@ -272,7 +273,15 @@ public class HttpClientImpl extends AbstractSimpleHttp {
     }
 
     private SimpleHttpResponse exec(HttpUriRequest request) {
+        Interceptor interceptor = this.getHttpConfig().getInterceptor();
+        if (null != interceptor) {
+            interceptor.client(httpClient);
+            interceptor.request(request);
+        }
         try (CloseableHttpResponse response = this.httpClient.execute(request)) {
+            if (null != interceptor) {
+                interceptor.response(response);
+            }
             boolean success = isSuccess(response);
             HttpEntity entity = response.getEntity();
             Map<String, List<String>> headers = Arrays.stream(response.getAllHeaders())

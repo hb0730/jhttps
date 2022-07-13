@@ -8,6 +8,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
+import com.hb0730.https.config.Interceptor;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.support.AbstractSimpleHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
@@ -126,7 +127,14 @@ public class HutoolImpl extends AbstractSimpleHttp implements IHutoolHttp {
     }
 
     private SimpleHttpResponse exec(HttpRequest request) {
+        Interceptor interceptor = this.getHttpConfig().getInterceptor();
+        if (null != interceptor) {
+            interceptor.client(request);
+        }
         try (HttpResponse response = request.execute()) {
+            if (null != interceptor) {
+                interceptor.response(response);
+            }
             return SimpleHttpResponse.builder()
                 .success(response.isOk())
                 .body(response.bodyBytes())
