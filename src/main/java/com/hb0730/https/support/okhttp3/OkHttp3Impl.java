@@ -29,7 +29,7 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
     private final okhttp3.OkHttpClient.Builder clientBuilder;
 
     public OkHttp3Impl() {
-        this(new HttpConfig());
+        this(HttpConfig.builder().build());
     }
 
     public OkHttp3Impl(HttpConfig config) {

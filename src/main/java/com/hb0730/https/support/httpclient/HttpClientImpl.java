@@ -63,12 +63,11 @@ public class HttpClientImpl extends AbstractSimpleHttp {
     private final CloseableHttpClient httpClient;
 
     public HttpClientImpl() {
-        this(HttpConfig.builder().build(), HttpClients.createDefault());
+        this(HttpClients.createDefault());
     }
 
     public HttpClientImpl(CloseableHttpClient httpClient) {
-        super(HttpConfig.builder().build());
-        this.httpClient = httpClient;
+        this(HttpConfig.builder().build(), httpClient);
     }
 
     public HttpClientImpl(HttpConfig httpConfig, CloseableHttpClient httpClient) {
