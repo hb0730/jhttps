@@ -46,6 +46,4 @@ public class HttpConfig {
      * contentType
      */
     private String contentType;
-
-    private Interceptor interceptor;
 }

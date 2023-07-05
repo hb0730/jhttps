@@ -2,6 +2,9 @@ package com.hb0730.https.support.okhttp3;
 
 import cn.hutool.core.io.FileUtil;
 import com.hb0730.https.support.SimpleHttp;
+import com.hb0730.https.support.SimpleHttpResponse;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -34,5 +37,19 @@ class OkHttp3ImplTest {
         body.put("name", "test");
         body.put("value", 2);
         http.postFormFile("http://localhost:8080/upload", body);
+    }
+
+    @Test
+    public void interceptorTest() {
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+                .addInterceptor(chain -> {
+                    Request request = chain.request();
+                    System.out.println("请求前");
+                    System.out.println(request);
+                    return chain.proceed(request);
+                });
+        OkHttp3Impl okHttp3 = new OkHttp3Impl(clientBuilder);
+        SimpleHttpResponse response = okHttp3.get("https://www.baidu.com");
+        System.out.println(response.getBodyStr());
     }
 }

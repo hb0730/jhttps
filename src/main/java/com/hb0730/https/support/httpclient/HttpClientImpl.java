@@ -9,7 +9,6 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
-import com.hb0730.https.config.Interceptor;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.support.AbstractSimpleHttp;
@@ -211,11 +210,11 @@ public class HttpClientImpl extends AbstractSimpleHttp {
                         File[] files = (File[]) value;
                         for (int i = 0; i < files.length; i++) {
                             entityBuilder.addPart(
-                                FormBodyPartBuilder
-                                    .create()
-                                    .setBody(new FileBody(files[i]))
-                                    .setName(name + i)
-                                    .build());
+                                    FormBodyPartBuilder
+                                            .create()
+                                            .setBody(new FileBody(files[i]))
+                                            .setName(name + i)
+                                            .build());
                         }
 
                         continue;
@@ -272,28 +271,21 @@ public class HttpClientImpl extends AbstractSimpleHttp {
     }
 
     private SimpleHttpResponse exec(HttpUriRequest request) {
-        Interceptor interceptor = this.getHttpConfig().getInterceptor();
-        if (null != interceptor) {
-            interceptor.client(httpClient);
-            interceptor.request(request);
-        }
         try (CloseableHttpResponse response = this.httpClient.execute(request)) {
-            if (null != interceptor) {
-                interceptor.response(response);
-            }
+
             boolean success = isSuccess(response);
             HttpEntity entity = response.getEntity();
             Map<String, List<String>> headers = Arrays.stream(response.getAllHeaders())
-                .collect(Collectors.toMap(Header::getName,
-                    (value) -> {
-                        List<String> valueList = new ArrayList<>();
-                        valueList.add(value.getValue());
-                        return valueList;
-                    }
-                    , (v1Value, v2Value) -> v2Value));
+                    .collect(Collectors.toMap(Header::getName,
+                            (value) -> {
+                                List<String> valueList = new ArrayList<>();
+                                valueList.add(value.getValue());
+                                return valueList;
+                            }
+                            , (v1Value, v2Value) -> v2Value));
             return SimpleHttpResponse.builder()
-                .success(success)
-                .body(IoUtil.readBytes(entity.getContent(), false)).headers(headers).build();
+                    .success(success)
+                    .body(IoUtil.readBytes(entity.getContent(), false)).headers(headers).build();
         } catch (IOException e) {
             throw new HttpException("request error:" + e.getMessage());
         }

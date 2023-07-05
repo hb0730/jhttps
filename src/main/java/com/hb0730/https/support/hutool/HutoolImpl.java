@@ -8,7 +8,6 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
-import com.hb0730.https.config.Interceptor;
 import com.hb0730.https.constants.Constants;
 import com.hb0730.https.support.AbstractSimpleHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
@@ -25,12 +24,23 @@ import java.util.Map;
  * @since 4.0.0
  */
 public class HutoolImpl extends AbstractSimpleHttp implements IHutoolHttp {
+    private final HttpRequest request;
+
     public HutoolImpl() {
         this(HttpConfig.builder().build());
     }
 
     public HutoolImpl(HttpConfig httpConfig) {
-        super(httpConfig);
+        this(null, httpConfig);
+    }
+
+    public HutoolImpl(HttpRequest httpRequest) {
+        this(httpRequest, HttpConfig.builder().build());
+    }
+
+    public HutoolImpl(HttpRequest httpRequest, HttpConfig config) {
+        super(config);
+        this.request = httpRequest;
     }
 
     @Override
@@ -127,26 +137,21 @@ public class HutoolImpl extends AbstractSimpleHttp implements IHutoolHttp {
     }
 
     private SimpleHttpResponse exec(HttpRequest request) {
-        Interceptor interceptor = this.getHttpConfig().getInterceptor();
-        if (null != interceptor) {
-            interceptor.client(request);
-        }
         try (HttpResponse response = request.execute()) {
-            if (null != interceptor) {
-                interceptor.response(response);
-            }
             return SimpleHttpResponse.builder()
-                .success(response.isOk())
-                .body(response.bodyBytes())
-                .headers(response.headers())
-                .build();
+                    .success(response.isOk())
+                    .body(response.bodyBytes())
+                    .headers(response.headers())
+                    .build();
         } catch (Exception e) {
             throw new com.hb0730.https.exception.HttpException("request error:" + e.getMessage());
         }
     }
 
     private HttpRequest getRequest(UrlBuilder url, Method method) {
-        return getHttpRequest(url, method, getHttpConfig() == null ? HttpConfig.builder().build() : getHttpConfig(), getHeader());
+        return getHttpRequest(request, url, method, getHttpConfig() == null ? HttpConfig.builder().build() :
+                        getHttpConfig(),
+                getHeader());
     }
 
     private String getContentType(String defaultContentType) {

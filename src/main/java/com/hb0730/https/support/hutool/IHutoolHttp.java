@@ -38,14 +38,25 @@ public interface IHutoolHttp {
     /**
      * create hutool request
      *
-     * @param builder url build
+     * @param builder url build not null
      * @param method  request method
      * @param config  http config
      * @param header  http request header
      * @return http request
+     * @
      */
-    default HttpRequest getHttpRequest(UrlBuilder builder, Method method, HttpConfig config, HttpHeader header) {
-        HttpRequest request = new HttpRequest(builder);
+    default HttpRequest getHttpRequest(HttpRequest httpRequest, UrlBuilder builder, Method method, HttpConfig config,
+                                       HttpHeader header) {
+
+
+        // 为了兼容Http的 HttpInterceptor
+        HttpRequest request = httpRequest;
+        if (null == request) {
+            request = HttpRequest.of(builder);
+        } else {
+            request.setUrl(builder);
+        }
+
         request.method(method);
         request.setProxy(config.getProxy());
         request.setConnectionTimeout(Math.toIntExact(config.getTimeout()));
@@ -53,5 +64,6 @@ public interface IHutoolHttp {
             request.addHeaders(header.getHeaders());
         }
         return request;
+
     }
 }

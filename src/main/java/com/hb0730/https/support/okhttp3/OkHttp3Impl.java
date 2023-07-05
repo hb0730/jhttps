@@ -3,7 +3,6 @@ package com.hb0730.https.support.okhttp3;
 import cn.hutool.core.io.FileUtil;
 import com.hb0730.https.HttpHeader;
 import com.hb0730.https.config.HttpConfig;
-import com.hb0730.https.config.Interceptor;
 import com.hb0730.https.exception.HttpException;
 import com.hb0730.https.support.AbstractSimpleHttp;
 import com.hb0730.https.support.SimpleHttpResponse;
@@ -36,6 +35,10 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
         this(new OkHttpClient().newBuilder(), config);
     }
 
+    public OkHttp3Impl(okhttp3.OkHttpClient.Builder clientBuilder) {
+        this(clientBuilder, HttpConfig.builder().build());
+    }
+
     public OkHttp3Impl(okhttp3.OkHttpClient.Builder clientBuilder, HttpConfig config) {
         super(config);
         this.clientBuilder = clientBuilder;
@@ -53,8 +56,8 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
             throw new HttpException("url missing");
         }
         Request.Builder builder = getRequestBuilder(url, params,
-            this.httpConfig.isEncode(),
-            this.header == null ? null : this.header.getHeaders());
+                this.httpConfig.isEncode(),
+                this.header == null ? null : this.header.getHeaders());
         return exec(builder);
     }
 
@@ -75,9 +78,9 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
             throw new HttpException("url missing");
         }
         Request.Builder requestBuilder = postJsonRequestBuild(url, dataJson,
-            StringUtils.isBlank(this.httpConfig.getContentType()) ?
-                JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
-            this.header == null ? null : this.header.getHeaders());
+                StringUtils.isBlank(this.httpConfig.getContentType()) ?
+                        JSON_UTF_8 : MediaType.parse(this.httpConfig.getContentType()),
+                this.header == null ? null : this.header.getHeaders());
         if (null != header) {
             header.getHeaders().forEach(requestBuilder::addHeader);
         }
@@ -95,9 +98,9 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
             throw new HttpException("url missing");
         }
         Request.Builder requestBuilder = postFormDataRequestBuild(url, formData, this.httpConfig.isEncode(),
-            StringUtils.isBlank(this.httpConfig.getContentType()) ? FORM_DATA_UTF_8 :
-                MediaType.parse(this.httpConfig.getContentType()),
-            null == this.header ? null : this.header.getHeaders());
+                StringUtils.isBlank(this.httpConfig.getContentType()) ? FORM_DATA_UTF_8 :
+                        MediaType.parse(this.httpConfig.getContentType()),
+                null == this.header ? null : this.header.getHeaders());
         if (null != header) {
             header.getHeaders().forEach(requestBuilder::addHeader);
         }
@@ -128,7 +131,7 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
             throw new HttpException("url missing");
         }
         Request.Builder requestBuilder = postFormFileRequestBuild(url, formData,
-            null == this.header ? null : this.header.getHeaders());
+                null == this.header ? null : this.header.getHeaders());
         if (null != header) {
             header.getHeaders().forEach(requestBuilder::addHeader);
         }
@@ -141,20 +144,12 @@ public class OkHttp3Impl extends AbstractSimpleHttp implements IOkhttp3 {
         }
         Request request = requestBuilder.build();
         OkHttpClient httpClient = buildClient(clientBuilder, this.httpConfig);
-        Interceptor interceptor = this.httpConfig.getInterceptor();
-        if (null != interceptor) {
-            interceptor.client(httpClient);
-            interceptor.request(request);
-        }
         try (Response response = httpClient.newCall(request).execute()) {
-            if (null != interceptor) {
-                interceptor.response(response);
-            }
             ResponseBody body = response.body();
             return SimpleHttpResponse.builder()
-                .success(response.isSuccessful())
-                .headers(response.headers().toMultimap())
-                .body(null != body ? body.bytes() : null).build();
+                    .success(response.isSuccessful())
+                    .headers(response.headers().toMultimap())
+                    .body(null != body ? body.bytes() : null).build();
         } catch (IOException e) {
             throw new HttpException("http execute error:" + e.getMessage(), e);
         }
